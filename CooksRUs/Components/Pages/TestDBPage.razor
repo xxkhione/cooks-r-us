@@ -1,0 +1,101 @@
+﻿@page "/test"
+@using Microsoft.EntityFrameworkCore
+@inject CooksRUsDbContext dbContext
+@rendermode InteractiveServer
+<div class="user-CRUD">
+    <button @onclick="AddPerson">Create User</button>
+
+    <br />
+    <button @onclick="FetchPerson">Get user</button>
+    @if(person == null)
+    {
+        <p>No person gotten!</p>
+    }
+    else
+    {
+        <p>Id: @person.id</p>
+        <p>Username: @person.username</p>
+        <p>Password: @person.password</p>
+    }
+    <br />
+    <button @onclick="UpdatePerson">Update User</button>
+    <br />
+    <button @onclick="RemovePerson">Delete weety goes MSL</button>
+</div>
+
+<div class="recepie-CRUD">
+
+</div>
+
+@code {
+    public user? person { get; set; }
+
+    //MANAGING USERS
+    //Adding data
+    // MAKE LOGIC TO ENSURE NO DUPE USERNAMES
+    private async Task AddPerson()
+    {
+        var newUser = new user { username = "MSL1002",
+                                 password = "password"};
+        dbContext.users.Add(newUser);
+        await dbContext.SaveChangesAsync();
+
+    }
+    //fetching data
+    private async Task FetchPerson()
+    {
+        person = await dbContext.users
+            .Where(u => u.username == "Isabelle Johnson")
+            .FirstOrDefaultAsync();
+    }
+    //update data
+    private async Task UpdatePerson()
+    {
+        person = await dbContext.users
+            .Where(u => u.username == "MSL1002")
+            .FirstOrDefaultAsync();
+
+        if(person != null)
+        {
+            person.username = "Isabelle Johnson";
+        }
+
+        await dbContext.SaveChangesAsync();
+    }
+    //deleting data
+    private async Task RemovePerson()
+    {
+        user entity = await dbContext.users.Where(u => u.username == "Isabelle Johnson").FirstOrDefaultAsync();
+        if(entity != null)
+        {
+            dbContext.users.Remove(entity);
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
+
+    //ingredient stuff
+
+    //TODO add these ingredients to a list and that list to a recepie
+    private async Task MakeIngredient()
+    {
+        List<ingredient> newIngredients = [new ingredient
+            {
+                ingredient_name = "Bread",
+                amount = "2 slices"
+            },
+            new ingredient{
+                ingredient_name = "Cheese",
+                amount = "2 slices"
+            }];
+
+        foreach(ingredient ingredient in newIngredients)
+        {
+            dbContext.ingredients.Add(ingredient);
+        }
+
+        await dbContext.SaveChangesAsync();
+    }
+
+
+}
