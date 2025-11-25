@@ -58,3 +58,48 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/*Cooks R Us CSS*/
+root {
+    --bg-primary: #258cfb --bg-secondary: #3a3a3a;
+    --text-primary: white;
+    --text-secondary: #b32121;
+    --color-primary: #a730ad;
+    --color-accent: #a730ad;
+    --color-muted: #888888;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.footer-flex {
+    flex: 1;
+}
+
+body {
+    font-family: Impact;
+    background-color: #e2a253;
+    background-size: cover;
+    background-attachment: fixed;
+    margin: 0;
+    padding: 2%;
+}
+
+.item {
+    background: #fbcf6c;
+    border: 2px solid #6a3a04;
+    border-radius: 15px;
+    box-shadow: 0 0 10px #ffd97b;
+    padding: 15px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    column-gap: 20px;
+    
+}
+
+.search-input {
+
+}
