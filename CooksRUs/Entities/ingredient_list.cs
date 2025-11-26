@@ -10,7 +10,8 @@ public partial class ingredient_list
 {
     [Key]
     public int id { get; set; }
-
+    [Required]
+    //set this, should know the ID of the recepie being made
     public int recepie_id { get; set; }
 
     [InverseProperty("list")]

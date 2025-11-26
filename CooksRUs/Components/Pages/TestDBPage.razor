@@ -24,11 +24,37 @@
 </div>
 
 <div class="recepie-CRUD">
+    <button @onclick="MakeIngredient">Make ingredient</button>
+    <button @onclick="MakeIngredientList">Make ingredient list</button>
+    <button @onclick="MakeRecepie">Make recepie</button>
 
+
+    <button @onclick="FetchRecepie">get recepie</button>
+    @if (recepie == null)
+    {
+        <p>No recepie gotten!</p>
+    }
+    else
+    {
+        <p>Id: @recepie.id</p>
+        <p>name: @recepie.recepie_name</p>
+        <p>directions: @recepie.directions</p>
+        <p>creator: @recepie.creator.username</p>
+        @* @foreach(ingredient ing in ing_lst.ingredients.ToArray())
+        {
+
+            <p>@ing.ingredient_name</p>
+            <p>@ing.amount</p>
+            
+        } *@
+    }
 </div>
 
 @code {
     public user? person { get; set; }
+
+    public recepie? recepie { get; set; }
+    public ingredient_list? ing_lst { get; set; }
 
     //MANAGING USERS
     //Adding data
@@ -45,7 +71,7 @@
     private async Task FetchPerson()
     {
         person = await dbContext.users
-            .Where(u => u.username == "Isabelle Johnson")
+            .Where(u => u.username == "MSL1002")
             .FirstOrDefaultAsync();
     }
     //update data
@@ -79,23 +105,62 @@
     //TODO add these ingredients to a list and that list to a recepie
     private async Task MakeIngredient()
     {
-        List<ingredient> newIngredients = [new ingredient
+        var newingredient = new ingredient
             {
-                ingredient_name = "Bread",
-                amount = "2 slices"
-            },
-            new ingredient{
-                ingredient_name = "Cheese",
-                amount = "2 slices"
-            }];
-
-        foreach(ingredient ingredient in newIngredients)
-        {
-            dbContext.ingredients.Add(ingredient);
-        }
-
+                list_id = 2,
+                ingredient_name = "cheese",
+                amount = "1 slice"
+            };
+        dbContext.ingredients.Add(newingredient);
         await dbContext.SaveChangesAsync();
     }
 
+    private async Task MakeIngredientList()
+    {
+        var newIngList = new ingredient_list
+            {
+                recepie_id = 1,
+                ingredients = dbContext.ingredients.Where(ingredient => ingredient.list_id == 1).ToList(),
+
+            };
+
+        dbContext.ingredient_lists.Add(newIngList);
+        await dbContext.SaveChangesAsync();
+    }
+
+    private async Task MakeRecepie()
+    {
+        var userEntity = await dbContext.users
+            .FirstOrDefaultAsync(u => u.username == "MSL1002");
+        if (userEntity == null) { return; }
+
+        var newRecepie = new recepie {
+            recepie_name = "Bread",
+            directions = "make toast",
+            image = null,
+            creatorid = userEntity.id
+        };
+
+        dbContext.recepies.Add(newRecepie);
+        await dbContext.SaveChangesAsync();
+    }
+
+    private async Task FetchRecepie()
+    {
+        recepie = await dbContext.recepies
+            .Include(r => r.creator) // include the creator
+            .Where(r => r.recepie_name.ToLower() == "grilled cheese")
+            .FirstOrDefaultAsync();
+
+        if (recepie != null)
+        {
+            // load correct ingredient list by recepie_id instead of id
+            ing_lst = await dbContext.ingredient_lists
+                .Where(lst => lst.recepie_id == recepie.id)
+                .FirstOrDefaultAsync();
+        }
+
+        Console.WriteLine(recepie?.creator);
+    }
 
 }

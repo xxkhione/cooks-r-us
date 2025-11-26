@@ -57,7 +57,6 @@ public partial class CooksRUsDbContext : DbContext
             entity.HasKey(e => e.id).HasName("PK_recepies_1");
 
             entity.Property(e => e.id).ValueGeneratedNever();
-            entity.Property(e => e.ingredient_list).ValueGeneratedOnAdd();
 
             entity.HasOne(d => d.creator).WithMany(p => p.recepies)
                 .OnDelete(DeleteBehavior.ClientSetNull)

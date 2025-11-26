@@ -13,16 +13,14 @@ public partial class recepie
 
     public string recepie_name { get; set; } = null!;
 
-    public int ingredient_list { get; set; }
-
     public string directions { get; set; } = null!;
 
     [Column(TypeName = "image")]
     public byte[]? image { get; set; }
 
-    public int creator_id { get; set; }
-
-    [ForeignKey("creator_id")]
+    [ForeignKey("creatorid")]
     [InverseProperty("recepies")]
+    public int creatorid { get; set; }
+    // false god - never returns anythign but null
     public virtual user creator { get; set; } = null!;
 }
