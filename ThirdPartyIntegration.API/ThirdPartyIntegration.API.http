@@ -1,6 +1,6 @@
 @ThirdPartyIntegration.API_HostAddress = http://localhost:5265
 
-GET {{ThirdPartyIntegration.API_HostAddress}}/weatherforecast/
+GET {{ThirdPartyIntegration.API_HostAddress}}
 Accept: application/json
 
 ###

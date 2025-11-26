@@ -1,3 +1,6 @@
+using Microsoft.OpenApi;
+using System.Text;
+using ThirdPartyIntegration.API.Services;
 
 namespace ThirdPartyIntegration.API
 {
@@ -10,9 +13,14 @@ namespace ThirdPartyIntegration.API
             // Add services to the container.
             builder.Services.AddAuthorization();
 
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
+            builder.Services.AddScoped<RecipeApiService>();
 
+            builder.Services.AddControllers();
+            builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "ThirdPartyIntegration.API", Version = "v1" });
+            });
             builder.Services.AddHttpClient();
 
             var app = builder.Build();
@@ -24,25 +32,6 @@ namespace ThirdPartyIntegration.API
             }
 
             app.UseAuthorization();
-
-            var summaries = new[]
-            {
-                "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-            };
-
-            app.MapGet("/weatherforecast", (HttpContext httpContext) =>
-            {
-                var forecast = Enumerable.Range(1, 5).Select(index =>
-                    new WeatherForecast
-                    {
-                        Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                        TemperatureC = Random.Shared.Next(-20, 55),
-                        Summary = summaries[Random.Shared.Next(summaries.Length)]
-                    })
-                    .ToArray();
-                return forecast;
-            })
-            .WithName("GetWeatherForecast");
 
             app.Run();
         }

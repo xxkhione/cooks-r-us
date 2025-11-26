@@ -1,4 +1,7 @@
-﻿namespace ThirdPartyIntegration.API.Services
+﻿using System.Text.Json;
+using ThirdPartyIntegration.API.Models;
+
+namespace ThirdPartyIntegration.API.Services
 {
     public class RecipeApiService
     {
@@ -12,28 +15,90 @@
             this.httpClient.BaseAddress = new Uri(baseUrl);
         }
 
-        //Search query (potentially multiple) -> search.php?s=
-        //Search query (single) -> lookup.php?i=
-        //Category query -> filter.php?c=
-        //Each ingredient's measurement is associated with the number supplied
-        //Use the tags to search by type of food (most likely will use RegEx for this bit
-        //Allow the search of categories (could make a drop down for this in the front-end?)
-
-        public async Task GetMealsAsync(string searchQuery = null)
+        public async Task<List<Recipe>> GetMealsAsync(string searchQuery = null)
         {
-            //Overall search
+            string url = $"{apiKey}/";
+            if(!string.IsNullOrEmpty(searchQuery))
+            {
+                url += $"search.php?s={searchQuery}";
+            }
+
+            try
+            {
+                var response = await httpClient.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+
+                var content = await response.Content.ReadAsStringAsync();
+                using JsonDocument json = JsonDocument.Parse(content);
+                JsonElement root = json.RootElement;
+                JsonElement meals = root.GetProperty("meals");
+
+                List<Recipe> recipes = new List<Recipe>();
+                var tasks = meals.EnumerateArray().Select(async recipeElement =>
+                {
+                    int apiRecipeId = recipeElement.GetProperty("idMeal").GetInt32();
+                    return await GetMealAsync(apiRecipeId);
+                });
+
+                recipes = (await Task.WhenAll(tasks)).ToList();
+
+                return recipes;
+            }
+            catch (HttpRequestException ex)
+            {
+                return new List<Recipe>();
+            }
+            catch (JsonException ex)
+            {
+                return new List<Recipe>();
+            }
         }
 
-        public async Task GetMealAsync(string lookupQuery = null)
+        public async Task<Recipe> GetMealAsync(int apiRecipeId)
         {
-            //For this, we would take the id given when doing a basic search
-            //More like the details for a meal if that makes sense
+            string url = $"{apiKey}/lookup.php?i={apiRecipeId}";
+            var response = await httpClient.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var recipeResponse = await response.Content.ReadAsStringAsync();
+                using JsonDocument json = JsonDocument.Parse(recipeResponse);
+                JsonElement root = json.RootElement;
+
+                return new Recipe
+                {
+                    ApiRecipeId = root.GetProperty("idMeal").GetInt32(),
+                    RecipeName = root.GetProperty("strMeal").GetString(),
+                    Image = root.GetProperty("strMealThumb").GetString(),
+                    Directions = root.GetProperty("strInstructions").GetString(),
+                    IngredientList = GetIngredientsAndMeasurements(root)
+                };
+            }
+            return null;
         }
 
-        public async Task GetCategoriesAsync(string filterQuery = null)
+        private List<Ingredient> GetIngredientsAndMeasurements(JsonElement recipeElement)
         {
-            //Search for specific categories
-            //Filter out the results based on the chosen category, if applicable
+            List<Ingredient> ingredients = new List<Ingredient>();
+            for (int i = 1; i < 20; i++)
+            {
+                if (!recipeElement.GetProperty($"strIngredient{i}").Equals("") || recipeElement.GetProperty($"strIngredient{i}").ToString() != null)
+                {
+                    string ingredientName = recipeElement.GetProperty($"strIngredient{i}").ToString();
+                    string measurement = recipeElement.GetProperty($"strMeasure{i}").ToString();
+
+                    Ingredient newIngredient = new Ingredient
+                    {
+                        IngredientName = ingredientName,
+                        Measurement = measurement
+                    };
+                    ingredients.Add(newIngredient);
+                } else
+                {
+                    break;
+                }
+            }
+            return ingredients;
         }
     }
 }
