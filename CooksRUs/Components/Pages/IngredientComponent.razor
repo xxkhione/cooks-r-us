@@ -1,0 +1,22 @@
+﻿@inject CooksRUsDbContext dbContext
+
+<input type="text" @bind="ing.ingredient_name" placeholder="Ingredient Name"/>
+<input type="text" @bind="ing.amount" placeholder="Ingredient Ammount"/>
+
+<button @onclick="Delete">Delete Ingredient</button>
+
+@code {
+    [Parameter]
+    public ingredient? ing { get; set; }
+
+    [Parameter]
+    public recepie? currentRecepie { get; set; }
+
+    [Parameter]
+    public EventCallback<ingredient> OnDelete { get; set; }
+
+    private async Task Delete()
+    {
+        await OnDelete.InvokeAsync(ing);
+    }
+}

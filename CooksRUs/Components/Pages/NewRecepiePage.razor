@@ -1,0 +1,92 @@
+﻿@*
+    DELETE ME AFTER TESTING
+    OR REFACTOR ME INTO FINAL PRODUCT
+*@
+@page "/test/NewRecepie"
+@using Microsoft.EntityFrameworkCore
+@inject CooksRUsDbContext dbContext
+@rendermode InteractiveServer
+<h3>Create a new recepie</h3>
+
+<div class="CREATING-A-RECEPIE">
+
+    <input type="text" @bind-value="newRecepie.recepie_name" placeholder="Recepie Name" />
+    <br />
+
+    @foreach (ingredient i in ing_list)
+    {
+        <IngredientComponent ing="i"
+                             OnDelete="DeleteIngredient"
+                             currentRecepie="newRecepie"></IngredientComponent>
+        <br />
+    }
+    <br />
+    <button @onclick="AddIngredient">Add Ingredient</button>
+    <br />
+    <input type="text" @bind-value="newRecepie.directions" placeholder="Recepie Directions" />
+    <br />
+    <button @onclick="SubmitRecepie">Submit Recepie</button>
+</div>
+
+@code {
+    int userID = 9;
+
+    private List<ingredient> ing_list = new List<ingredient>();
+    private recepie newRecepie;
+    private ingredient_list newIngLst;
+
+    protected override void OnInitialized()
+    {
+        newRecepie = new recepie
+            {
+                recepie_name = "",
+                directions = "",
+                image = null,
+                creatorid = userID
+            };
+
+        newIngLst = new ingredient_list
+        {
+            recepie_id = newRecepie.id
+        };
+        AddIngredient();
+    }
+
+    private void AddIngredient()
+    {
+        ing_list.Add(new ingredient { list_id = newIngLst.id, ingredient_name = "", amount = "" });
+    }
+
+    private void DeleteIngredient(ingredient ingre)
+    {
+        ing_list.Remove(ingre);
+    }
+
+    private async Task SubmitRecepie()
+    {
+        try
+        {
+            // Link entities via navigation properties so EF will set FKs on save
+            newIngLst.recepie = newRecepie;
+            newIngLst.ingredients = ing_list;
+
+            foreach (var ing in ing_list)
+            {
+                ing.list = newIngLst;
+            }
+
+            // Add root/aggregate to the context — EF will insert related entities
+            dbContext.Add(newRecepie);
+            dbContext.Add(newIngLst);
+
+            await dbContext.SaveChangesAsync();
+
+            
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine("ERROR:");
+            Console.WriteLine(e);
+        }
+    }
+}
