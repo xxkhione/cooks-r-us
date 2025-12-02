@@ -1,0 +1,50 @@
+﻿@page "/test/NewUser"
+@using Microsoft.EntityFrameworkCore
+@inject CooksRUsDbContext dbContext
+@rendermode InteractiveServer
+
+<h2>Create a New Account</h2>
+
+<EditForm method="post" Model="newUser" OnValidSubmit="CreateUser" FormName="NewUserForm" Enhance>
+
+    <ValidationSummary />
+
+    <label>username inpit</label>
+    <InputText placeholder="username" @bind-value="user_name" />
+    <br />
+    <label>password input</label>
+    <InputText placeholder="password" @bind-value="newUserPassword" />
+    <br />
+</EditForm>
+
+<button @onclick="CreateUser">Submit</button>
+
+@code {
+    [SupplyParameterFromForm]
+    public string user_name { get; set; } = "";
+    [SupplyParameterFromForm]
+    public string newUserPassword { get; set; } = "";
+
+    [Inject]
+    public ILogger<NewUserPage> _logger { get; set; }
+
+    public user newUser { get; set; } = new user();
+
+
+    private async Task CreateUser()
+    {
+        try
+        {
+            newUser = new user { username = user_name, password = newUserPassword };
+            dbContext.users.Add(newUser);
+            await dbContext.SaveChangesAsync();
+            //navigate back to home page after signing in
+            // I'm not 100% sure how to use cookies right now but I'll learn
+            // -- Isablle J.
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "An error occurred somewhere");
+        }
+    }
+}
