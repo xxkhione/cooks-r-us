@@ -26,16 +26,6 @@ else
     </div>
 }
 
-<h2>Featured Recommendations 🔥</h2>
-
-<div class="container">
-    @foreach(var rec in featuredRecipes)
-    {
-        <RecipeCard Title="@rec.Title" Description="@rec.Description" ImageURL="@rec.Image"
-                    ShowSaveButton="true" OnSave="() => SaveRecipe(rec)" />
-    }
-</div>
-
 @code {
     List<Recipe> savedRecipes = new();          // backend will fill these
     List<Recipe> featuredRecipes = new();       // showcase random recipes
