@@ -1,46 +1,42 @@
-﻿@page "/"
+﻿@using CooksRUs.Shared
+
+@page "/"
 
 <PageTitle>Home</PageTitle>
 
-<body>
-    <header>
-        <div>
-            <nav>
-                <h1>Hello! Welcome to Cooks R Us! 🧑‍🍳</h1>
-            </nav>
-            <p>
-                This site is made for people to upload recipes for the world to see,
-                and even save recipes uploaded by others!
-            </p>
-        </div>
-       
-    </header>
+<header>
+    <h1>Welcome to Cooks R Us! 🧑‍🍳</h1>
+    <p>Browse, save, upload — recipes for everyone.</p>
+</header>
 
-    <main class="container">
-        <div class="item">
-            image if provided?
-            <h2>
-                recipe name
-            </h2>
-            <p>
-                input the layout/details here?
-            </p>
-        </div>
-    </main>
+<h2>Your Saved Recipes ⭐</h2>
 
-    <div class="footer-flex">
-        <footer>
-            <p>&copy; 2025 Cooks R Us. All rights reserved.</p>
-        </footer>
+@if(savedRecipes.Count == 0)
+{
+    <p>You haven't saved anything yet — go explore!</p>
+}
+else
+{
+    <div class="container">
+        @foreach(var recipe in savedRecipes)
+        {
+            <RecipeCard Title="@recipe.Title" Description="@recipe.Description" ImageURL="@recipe.Image"
+                        ShowEditControls="false" ShowSaveButton="false" />
+        }
     </div>
+}
 
+@code {
+    List<Recipe> savedRecipes = new();          // backend will fill these
+    List<Recipe> featuredRecipes = new();       // showcase random recipes
 
-</body>
+    void SaveRecipe(Recipe r){
+        savedRecipes.Add(r); // backend integration later
+    }
 
-
-
-
-
-
-
-
+    class Recipe{
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public string? Image { get; set; }
+    }
+}
