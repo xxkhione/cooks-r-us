@@ -1,0 +1,32 @@
+﻿<div class="recipe-card">
+    <img src="@ImageURL" class="recipe-img" />
+
+    <h2>@Title</h2>
+    <p>@(Description?.Length > 120 ? Description.Substring(0, 120) + "..." : Description)</p>
+
+    @if (ShowSaveButton)
+    {
+        <button class="card-btn save-btn" @onclick="OnSave">Save</button>
+    }
+
+    @if (ShowEditControls)
+    {
+        <div class="card-controls">
+            <button class="card-btn edit-btn" @onclick="OnEdit">Edit</button>
+            <button class="card-btn delete-btn" @onclick="OnDelete">Delete</button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string? Description { get; set; }
+    [Parameter] public string ImageURL { get; set; } = "/images/no-image.png";
+
+    [Parameter] public bool ShowSaveButton { get; set; }
+    [Parameter] public bool ShowEditControls { get; set; }
+
+    [Parameter] public EventCallback OnSave { get; set; }
+    [Parameter] public EventCallback OnEdit { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+}
