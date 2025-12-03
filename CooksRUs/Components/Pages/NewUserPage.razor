@@ -1,6 +1,6 @@
-﻿@page "/test/NewUser"
+﻿@page "/SignUp"
 @using Microsoft.EntityFrameworkCore
-@inject CooksRUsDbContext dbContext
+@inject ILogger logger
 @rendermode InteractiveServer
 
 <h2>Create a New Account</h2>
@@ -9,15 +9,14 @@
 
     <ValidationSummary />
 
-    <label>username inpit</label>
+    <label>username:</label>
     <InputText placeholder="username" @bind-value="user_name" />
     <br />
-    <label>password input</label>
+    <label>password:</label>
     <InputText placeholder="password" @bind-value="newUserPassword" />
     <br />
+    <button type="submit">Submit</button>
 </EditForm>
-
-<button @onclick="CreateUser">Submit</button>
 
 @code {
     [SupplyParameterFromForm]
@@ -38,9 +37,8 @@
             newUser = new user { username = user_name, password = newUserPassword };
             dbContext.users.Add(newUser);
             await dbContext.SaveChangesAsync();
-            //navigate back to home page after signing in
-            // I'm not 100% sure how to use cookies right now but I'll learn
-            // -- Isablle J.
+            await cookie.SetValue(newUser.id);
+            navigation.NavigateTo("/", true);
         }
         catch (Exception e)
         {

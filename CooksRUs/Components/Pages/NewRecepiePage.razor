@@ -1,10 +1,5 @@
-﻿@*
-    DELETE ME AFTER TESTING
-    OR REFACTOR ME INTO FINAL PRODUCT
-*@
-@page "/test/NewRecepie"
+﻿@page "/NewRecepie"
 @using Microsoft.EntityFrameworkCore
-@inject CooksRUsDbContext dbContext
 @rendermode InteractiveServer
 <h3>Create a new recepie</h3>
 
@@ -29,14 +24,15 @@
 </div>
 
 @code {
-    int userID = 9;
+    int userID;
 
     private List<ingredient> ing_list = new List<ingredient>();
     private recepie newRecepie;
     private ingredient_list newIngLst;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        userID = await GetUserID();
         newRecepie = new recepie
             {
                 recepie_name = "",
@@ -60,6 +56,11 @@
     private void DeleteIngredient(ingredient ingre)
     {
         ing_list.Remove(ingre);
+    }
+
+    private async Task<int> GetUserID()
+    {
+        return await cookie.GetValue();
     }
 
     private async Task SubmitRecepie()

@@ -1,4 +1,5 @@
 using CooksRUs.Components;
+using CooksRUs.Components.Cookie;
 using CooksRUs.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +14,12 @@ namespace CooksRUs
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
             builder.Services.AddDbContext<CooksRUsDbContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("CooksRUsContext")));
+            builder.Services.AddScoped<ICookie, Cookie>();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddLogging();
+            
 
             var app = builder.Build();
 
