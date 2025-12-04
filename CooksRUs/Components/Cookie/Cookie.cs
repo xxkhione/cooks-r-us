@@ -8,7 +8,7 @@ namespace CooksRUs.Components.Cookie
         private readonly IHttpContextAccessor _http;
         private readonly IJSRuntime JSRuntime;
         // # of days the cookie expires in
-        int _expires;
+        readonly int _expires;
 
         public Cookie(IHttpContextAccessor http, IJSRuntime js)
         {

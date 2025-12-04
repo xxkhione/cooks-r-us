@@ -20,23 +20,17 @@ else
     <div class="container">
         @foreach(var recipe in savedRecipes)
         {
-            <RecipeCard Title="@recipe.Title" Description="@recipe.Description" ImageURL="@recipe.Image"
+            <RecipeCard Title="@recipe.recepie_name" Description="@recipe.directions" ImageURL="@recipe.image" Creator="recepie.creator.username"
                         ShowEditControls="false" ShowSaveButton="false" />
         }
     </div>
 }
 
 @code {
-    List<Recipe> savedRecipes = new();          // backend will fill these
-    List<Recipe> featuredRecipes = new();       // showcase random recipes
+    List<recepie> savedRecipes = new();          // backend will fill these
+    List<recepie> featuredRecipes = new();       // showcase random recipes
 
-    void SaveRecipe(Recipe r){
+    void SaveRecipe(recepie r){
         savedRecipes.Add(r); // backend integration later
-    }
-
-    class Recipe{
-        public string? Title { get; set; }
-        public string? Description { get; set; }
-        public string? Image { get; set; }
     }
 }

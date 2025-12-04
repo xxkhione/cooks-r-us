@@ -6,9 +6,28 @@
     </div>
 
     <main>
+        @*
+            TODO:
+            FIX THIS
+            DOESN'T RE-RENDER to ACCURATLY DISPLAY SIGN IN STATUS
+        *@
+        <div class="top-row px-4">
+            @if (username != null)
+            {
+                <p>Hello, @username</p>
+
+                <button @onclick="SignOut">Sign Out</button>
+            }
+            else{
+                <a href="SignIn">Sign in Here!</a>
+            }
+        </div>
+
         <article class="content px-4">
             @Body
         </article>
+
+        
     </main>
 </div>
 
@@ -17,3 +36,39 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code{
+
+    public string? username { get; set; }
+
+    [Inject]
+    private ILogger<MainLayout> logger { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        int userID = await cookie.GetValue();
+
+        TrySignIn(userID);
+
+    }
+
+    public void TrySignIn(int userID)
+    {
+        try
+        {
+            username = dbContext.users.Where(u => u.id == userID).FirstOrDefault().username;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "User not signed in");
+        }
+    }
+
+    public void SignOut()
+    {
+        logger.LogDebug("Sign Out Method Ran");
+        cookie.SetValue(-1);
+        StateHasChanged();
+    }
+
+}

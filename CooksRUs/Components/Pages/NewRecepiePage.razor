@@ -60,7 +60,16 @@
 
     private async Task<int> GetUserID()
     {
-        return await cookie.GetValue();
+        try
+        {
+            return await cookie.GetValue();
+        }
+        catch
+        {
+            //TODO:
+            //User not signed in, show an error msg
+            return 0;
+        }
     }
 
     private async Task SubmitRecepie()
@@ -81,6 +90,7 @@
             dbContext.Add(newIngLst);
 
             await dbContext.SaveChangesAsync();
+            navigation.NavigateTo("/", true);
 
             
         }
