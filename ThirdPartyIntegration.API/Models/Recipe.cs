@@ -4,8 +4,6 @@ namespace ThirdPartyIntegration.API.Models
 {
     public class Recipe
     {
-        [Key]
-        public int RecipeId { get; set; }
         public int ApiRecipeId { get; set; }
         public string RecipeName { get; set; }
         public string Image { get; set; }
