@@ -8,3 +8,11 @@
 @using Microsoft.JSInterop
 @using CooksRUs
 @using CooksRUs.Components
+
+@using CooksRUs.Database
+@using CooksRUs.Entities
+@using CooksRUs.Components.Cookie
+
+@inject ICookie cookie
+@inject CooksRUsDbContext dbContext
+@inject NavigationManager navigation

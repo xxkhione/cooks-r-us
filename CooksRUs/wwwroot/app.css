@@ -94,10 +94,9 @@ body {
 
 .container {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
     gap: 20px;
     column-gap: 20px;
-    
 }
 
 /* Search Bar Container */
@@ -313,4 +312,22 @@ body {
     font-size: 1rem;
     font-weight: bold;
     text-align: center;
+}
+
+.recipe-main {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.recipe-image {
+    max-width: 100%;
+    border-radius: 4px;
+}
+
+.recipe-ingredients {
+    margin-top: 1rem;
+    list-style-type: disc;
+    padding-left: 1.5rem;
 }

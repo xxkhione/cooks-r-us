@@ -1,4 +1,7 @@
 using CooksRUs.Components;
+using CooksRUs.Components.Cookie;
+using CooksRUs.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace CooksRUs
 {
@@ -7,10 +10,20 @@ namespace CooksRUs
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            builder.Services.AddHttpClient("BackendApi", client =>
+            {
+                client.BaseAddress = new Uri("http://localhost:5265/");
+            });
 
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+
+            builder.Services.AddDbContext<CooksRUsDbContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("CooksRUsContext")));
+            builder.Services.AddScoped<ICookie, Cookie>();
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddLogging();
+            
 
             var app = builder.Build();
 

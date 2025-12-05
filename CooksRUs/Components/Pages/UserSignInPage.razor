@@ -1,0 +1,66 @@
+﻿@page "/SignIn"
+@using Microsoft.EntityFrameworkCore
+@rendermode InteractiveServer
+
+<h2>Sign In</h2>
+@if(!IsUserSignedIn())
+{
+    <EditForm method="post" Model="temp_user" OnValidSubmit="TrySignIn" FormName="SignInForm" Enhance>
+
+        <ValidationSummary />
+
+        <label>Username:</label>
+        <InputText placeholder="username" @bind-Value="temp_user.username" />
+        <br />
+        <label>Password:</label>
+        <InputText placeholder="password" @bind-Value="temp_user.password" />
+        <br />
+
+        <button type="submit">Submit</button>
+    </EditForm>
+}
+
+
+@code {
+    [Inject]
+    private ILogger<UserSignInPage> _logger { get; set; }
+
+    [SupplyParameterFromForm]
+    public user temp_user { get; set; } = new user();
+
+    private bool IsUserSignedIn()
+    {
+        if (cookie.GetValue().Result == -1)
+        {
+            return false;
+        }
+        else
+        {
+            navigation.NavigateTo("/", true);
+            return true;
+        }
+    } 
+
+    private async Task TrySignIn()
+    {
+        try
+        {
+            user? current_user = await dbContext.users.Where(u => (u.username == temp_user.username) && (u.password == temp_user.password)).FirstOrDefaultAsync();
+
+            if(current_user != null)
+            {
+                await cookie.SetValue(current_user.id);
+                navigation.NavigateTo("/", true);
+            }
+            else
+            {
+                //TODO:
+                //display an error message
+            }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "An error occurred somewhere");
+        }
+    }
+}
