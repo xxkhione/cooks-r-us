@@ -100,6 +100,217 @@ body {
     
 }
 
-.search-input {
+/* Search Bar Container */
+.search-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+}
 
+/* Search Input */
+.search-input {
+    width: 280px;
+    padding: 12px 15px;
+    font-size: 1rem;
+    border: 2px solid #6d3703;
+    border-radius: 8px;
+    outline: none;
+    background-color: #fff4e0;
+    color: #4a2602;
+    transition: 0.2s ease-in-out;
+}
+
+.search-input:focus {
+    border-color: #a65004;
+    box-shadow: 0 0 5px rgba(166, 80, 4, 0.4);
+}
+
+/* Search Button */
+.search-button {
+    padding: 12px 18px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background-color: #6d3703;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.15s ease;
+}
+
+.search-button:hover {
+    background-color: #8f4b0b;
+    transform: translateY(-2px);
+}
+
+.search-button:active {
+    transform: translateY(1px);
+}
+
+
+/* Upload Page Layout */
+.upload-layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    margin-top: 20px;
+    padding: 20px;
+}
+
+/* Upload Card */
+.upload-card {
+    background: #fbcf6c;
+    border: 2px solid #6a3a04;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px #ffda8b;
+}
+
+/* Inputs */
+.upload-input,
+.upload-textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 2px solid #6a3a04;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.upload-textarea {
+    height: 120px;
+    resize: vertical;
+}
+
+/* Button */
+.upload-button {
+    background: #6a3a04;
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    width: 100%;
+    font-family: Impact, sans-serif;
+}
+
+.upload-button:hover {
+    background: #8a4d06;
+}
+
+/* Recipe List */
+.recipe-list {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 10px;
+}
+
+    .recipe-list li {
+        background: #ffefb3;
+        padding: 10px;
+        margin-bottom: 6px;
+        border-radius: 8px;
+        border: 1px solid #d49b3b;
+    }
+
+.profile-container {
+    padding: 2rem 3rem;
+    background-color: #d8934c;
+    min-height: 100vh;
+    color: #2e1a0b;
+}
+
+.profile-title {
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+}
+
+.profile-subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.profile-section {
+    margin-top: 2rem;
+}
+
+.profile-section h2 {
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.profile-card {
+    background: #f4d4aa;
+    padding: 1.2rem;
+    border-radius: 12px;
+    width: 350px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.recipe-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+}
+
+.recipe-card {
+    display: flex;
+    align-items: center;
+    background: #f4d4aa;
+    padding: 1rem;
+    border-radius: 12px;
+    width: 400px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+.recipe-img {
+    width: 85px;
+    height: 85px;
+    border-radius: 10px;
+    object-fit: cover;
+    margin-right: 1rem;
+    background-color: #fff;
+}
+
+.recipe-info h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.recipe-info p {
+    margin: 0.2rem 0 0.6rem 0;
+}
+
+.button-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.edit-btn, .delete-btn {
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.edit-btn {
+    background-color: #ffd966;
+}
+
+.delete-btn {
+    background-color: #ff6961;
+    color: #fff;
+}
+
+.profile-footer {
+    margin-top: 3rem;
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
 }

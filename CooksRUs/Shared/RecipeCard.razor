@@ -1,32 +1,34 @@
 ﻿<div class="recipe-card">
-    <img src="@ImageURL" class="recipe-img" />
+    @if (!string.IsNullOrEmpty(ImageUrl))
+    {
+        <img src="@ImageUrl" alt="@Title" class="recipe-image" />
+    }
 
-    <h2>@Title</h2>
-    <p>@(Description?.Length > 120 ? Description.Substring(0, 120) + "..." : Description)</p>
+    <h3>@Title</h3>
+
+    <p>@Description</p>
 
     @if (ShowSaveButton)
     {
-        <button class="card-btn save-btn" @onclick="OnSave">Save</button>
+        <button class="save-btn" @onclick="OnSaveClicked">Save ❤️</button>
     }
 
-    @if (ShowEditControls)
+    @if (ShowEditButtons)
     {
-        <div class="card-controls">
-            <button class="card-btn edit-btn" @onclick="OnEdit">Edit</button>
-            <button class="card-btn delete-btn" @onclick="OnDelete">Delete</button>
-        </div>
+        <button class="edit-btn" @onclick="OnEditClicked">Edit ✏️</button>
+        <button class="delete-btn" @onclick="OnDeleteClicked">Delete 🗑️</button>
     }
 </div>
 
 @code {
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Description { get; set; }
-    [Parameter] public string ImageURL { get; set; } = "/images/no-image.png";
+    [Parameter] public string? ImageUrl { get; set; }
 
-    [Parameter] public bool ShowSaveButton { get; set; }
-    [Parameter] public bool ShowEditControls { get; set; }
+    [Parameter] public bool ShowSaveButton { get; set; } = false;
+    [Parameter] public bool ShowEditButtons { get; set; } = false;
 
-    [Parameter] public EventCallback OnSave { get; set; }
-    [Parameter] public EventCallback OnEdit { get; set; }
-    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnSaveClicked { get; set; }
+    [Parameter] public EventCallback OnEditClicked { get; set; }
+    [Parameter] public EventCallback OnDeleteClicked { get; set; }
 }

@@ -1,47 +1,67 @@
 ﻿@using CooksRUs.Shared
-
 @page "/search"
 
 <PageTitle>Search</PageTitle>
 
 <header>
-    <h1>🔍 Search Recipes</h1>
+    <h1>🔍 Look For Recipes Here!</h1>
+    <div class="search-wrapper">
+        <input type="text" id="search-bar" class="search-input" placeholder="Search for a recipe..." />
+        <button class="search-button" id="search-btn">Search 😋</button>
+    </div>
 </header>
 
-<input id="search-bar" class="search-input" @bind="query" placeholder="Search recipes..."/>
-<button id="search-btn" @onclick="SearchRecipes">Search 😋</button>
+<main class="container">
+    @if (SearchResults.Count == 0 && SearchedOnce)
+    {
+        <p>No recipes found.</p>
+    }
+    else
+    {
+        <div class="recipe-grid">
+            @foreach (var r in SearchResults)
+            {
+                <RecipeCard Title="@r.Title"
+                            Description="@r.Description"
+                            ImageUrl="@r.ImageUrl"
+                            ShowSaveButton="true"
+                            OnSaveClicked="@(() => Save(r))" />
+            }
+        </div>
+    }
+</main>
 
-@if(SearchResults.Count == 0)
-{
-    <p>No results yet — try searching something!</p>
-}
-else
-{
-    <div class="container">
-        @foreach(var r in SearchResults)
-        {
-            <RecipeCard Title="@r.Title" Description="@r.Description" ImageURL="@r.Image"
-                        ShowSaveButton="true" OnSave="() => SaveRecipe(r)" />
-        }
-    </div>
-}
+<footer class="footer-flex">
+    <p>&copy; 2025 Cooks R Us. All rights reserved.</p>
+</footer>
 
 @code {
-    string query = "";
+    string SearchQuery { get; set; } = "";
+    bool SearchedOnce = false;
+
     List<Recipe> SearchResults = new();
 
-    async Task SearchRecipes() {
-        // backend teammate will hook API call here
-        // SearchResults = await RecipeService.Search(query);
+    void PerformSearch()
+    {
+        SearchedOnce = true;
+
+        SearchResults = MockData
+            .Where(r => r.Title.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase))
+            .ToList();
     }
 
-    void SaveRecipe(Recipe r){
-        // backend saves to user profile
+
+
+    List<Recipe> MockData = new()
+    {
+        new Recipe{Title="Pancakes", Description="Fluffy, easy pancakes.", ImageUrl="img/pancakes.jpg"},
+        new Recipe{Title="Salad Bowl", Description="Fresh greens with dressing.", ImageUrl="img/salad.jpg"}
+    };
+
+    void Save(Recipe r)
+    {
+        // placeholder
     }
 
-    class Recipe{
-        public string? Title { get; set; }
-        public string? Description { get; set; }
-        public string? Image { get; set; }
-    }
+    public class Recipe { public string? Title; public string? Description; public string? ImageUrl; }
 }
