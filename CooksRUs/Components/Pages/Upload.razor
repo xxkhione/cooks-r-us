@@ -1,36 +1,84 @@
-﻿@using CooksRUs.Shared
-
-@page "/upload"
+﻿@page "/upload"
 
 <PageTitle>Upload</PageTitle>
 
-<header>
-    <h1>Share Your Recipe! 🌎</h1>
-</header>
+<body>
+    <header>
+        <nav>
+            <h1>Share Your Recipes With The World! 🌎</h1>
+        </nav>
+        <p>Fill out the details below, and submit your recipe for all to see!</p>
+    </header>
 
+    <main class="upload-layout">
 
-<h2>Your Uploaded Recipes 📤</h2>
+        
+        <div class="upload-card">
+            <h2>Create New Recipe ✨</h2>
 
-<div class="container">
-    @foreach(var r in uploaded)
-    {
-        <RecipeCard Title="@r.recepie_name" Description="@r.directions" ImageURL="@r.image"
-                    ShowEditControls="true"
-                    OnEdit="() => EditRecipe(r)"
-                    OnDelete="() => DeleteRecipe(r)" />
-    }
-</div>
+            <input class="upload-input" placeholder="Recipe Title" @bind="NewRecipeTitle" />
+            <textarea class="upload-textarea" placeholder="Description" @bind="NewRecipeDescription"></textarea>
+            <input class="upload-input" placeholder="Image URL (optional)" @bind="NewRecipeImageUrl" />
+
+            <button class="upload-button" @onclick="SubmitRecipe">Submit Recipe</button>
+        </div>
+
+      
+        <div class="upload-card">
+            <h2>Your Uploaded Recipes 📚</h2>
+
+            @if (UserRecipes.Count == 0)
+            {
+                <p>No recipes uploaded yet.</p>
+            }
+            else
+            {
+                <ul class="recipe-list">
+                    @foreach (var recipe in UserRecipes)
+                    {
+                        <li>@recipe.Title</li>
+                    }
+                </ul>
+            }
+        </div>
+
+    </main>
+
+    <div class="footer-flex">
+        <footer>
+            <p>&copy; 2025 Cooks R Us. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
 
 @code {
-    List<recepie> uploaded = new();
-    Recipe newRecipe = new();
 
-    void EditRecipe(recepie r){
-        // future backend popup/edit page
+    string NewRecipeTitle = "";
+    string NewRecipeDescription = "";
+    string NewRecipeImageUrl = "";
+
+    List<RecipeModel> UserRecipes = new();
+
+    void SubmitRecipe()
+    {
+        if (string.IsNullOrWhiteSpace(NewRecipeTitle)) return;
+
+        UserRecipes.Add(new RecipeModel
+        {
+            Title = NewRecipeTitle,
+            Description = NewRecipeDescription,
+            ImageUrl = NewRecipeImageUrl
+        });
+
+        NewRecipeTitle = "";
+        NewRecipeDescription = "";
+        NewRecipeImageUrl = "";
     }
 
-    void DeleteRecipe(recepie r){
-        dbContext.recepies.Remove(r);
-        dbContext.SaveChangesAsync();
+    class RecipeModel
+    {
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }

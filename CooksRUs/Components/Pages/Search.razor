@@ -74,4 +74,6 @@
 
         Recipes = await client.GetFromJsonAsync<List<Recipe>>($"api/recipes?searchQuery={Uri.EscapeDataString(SearchText)}");
     }
+
+    public class Recipe { public string? Title; public string? Description; public string? ImageUrl; }
 }

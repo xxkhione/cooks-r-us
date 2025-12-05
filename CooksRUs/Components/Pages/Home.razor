@@ -26,11 +26,12 @@ else
     </div>
 }
 
-@code {
-    List<recepie> savedRecipes = new();          // backend will fill these
-    List<recepie> featuredRecipes = new();       // showcase random recipes
 
-    void SaveRecipe(recepie r){
-        savedRecipes.Add(r); // backend integration later
+@code {
+    List<Recipe> savedRecipes = new();       
+    List<Recipe> featuredRecipes = new();    
+
+    void SaveRecipe(Recipe r){
+        savedRecipes.Add(r); 
     }
 }
