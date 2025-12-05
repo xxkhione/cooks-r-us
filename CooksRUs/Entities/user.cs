@@ -10,7 +10,7 @@ public partial class user
 {
     [Key]
     public int id { get; set; }
-
+        
     public string username { get; set; } = null!;
 
     public string password { get; set; } = null!;

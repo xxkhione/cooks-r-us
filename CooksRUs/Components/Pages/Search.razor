@@ -1,4 +1,5 @@
 ﻿@using CooksRUs.Shared
+@using CooksRUs.Entities
 
 @page "/search"
 
@@ -20,7 +21,7 @@ else
     <div class="container">
         @foreach(var r in SearchResults)
         {
-            <RecipeCard Title="@r.Title" Description="@r.Description" ImageURL="@r.Image"
+            <RecipeCard Title="@r.recepie_name" Description="@r.directions" Creator="@r.creator.username" ImageURL="@r.image"
                         ShowSaveButton="true" OnSave="() => SaveRecipe(r)" />
         }
     </div>
@@ -28,20 +29,25 @@ else
 
 @code {
     string query = "";
-    List<Recipe> SearchResults = new();
+    List<recepie> SearchResults = new();
 
-    async Task SearchRecipes() {
-        // backend teammate will hook API call here
-        // SearchResults = await RecipeService.Search(query);
+    void SearchRecipes() {
+        try
+        {
+            SearchResults = dbContext.recepies
+            .Where(r => r.recepie_name.Contains(query))
+            .ToList();
+        }
+        catch
+        {
+            SearchResults = new();
+        }
+
     }
 
-    void SaveRecipe(Recipe r){
-        // backend saves to user profile
-    }
+    void SaveRecipe(recepie r){
+        int userID = cookie.GetValue().Result;
 
-    class Recipe{
-        public string? Title { get; set; }
-        public string? Description { get; set; }
-        public string? Image { get; set; }
+        dbContext.users.Where(u => u.id == userID).First().recepies.Add(r);
     }
 }

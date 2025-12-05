@@ -3,6 +3,7 @@
 
     <h2>@Title</h2>
     <p>@(Description?.Length > 120 ? Description.Substring(0, 120) + "..." : Description)</p>
+    <p><small>Creator: @Creator</small></p>
 
     @if (ShowSaveButton)
     {
@@ -21,7 +22,8 @@
 @code {
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Description { get; set; }
-    [Parameter] public string ImageURL { get; set; } = "/images/no-image.png";
+    [Parameter] public string? Creator { get; set; }
+    [Parameter] public byte[]? ImageURL { get; set; }
 
     [Parameter] public bool ShowSaveButton { get; set; }
     [Parameter] public bool ShowEditControls { get; set; }

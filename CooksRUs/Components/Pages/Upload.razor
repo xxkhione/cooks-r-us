@@ -8,20 +8,13 @@
     <h1>Share Your Recipe! 🌎</h1>
 </header>
 
-<div class="upload-box">
-    <input class="text-input" @bind="newRecipe.Title" placeholder="Recipe Title" />
-    <textarea class="text-input" @bind="newRecipe.Description" placeholder="Description"></textarea>
-    <input class="text-input" @bind="newRecipe.Image" placeholder="Image URL (optional)" />
-
-    <button class="submit-btn" @onclick="UploadRecipe">Add Recipe 🍽️</button>
-</div>
 
 <h2>Your Uploaded Recipes 📤</h2>
 
 <div class="container">
     @foreach(var r in uploaded)
     {
-        <RecipeCard Title="@r.Title" Description="@r.Description" ImageURL="@r.Image"
+        <RecipeCard Title="@r.recepie_name" Description="@r.directions" ImageURL="@r.image"
                     ShowEditControls="true"
                     OnEdit="() => EditRecipe(r)"
                     OnDelete="() => DeleteRecipe(r)" />
@@ -29,25 +22,15 @@
 </div>
 
 @code {
-    List<Recipe> uploaded = new();
+    List<recepie> uploaded = new();
     Recipe newRecipe = new();
 
-    void UploadRecipe(){
-        uploaded.Add(new Recipe{ Title=newRecipe.Title, Description=newRecipe.Description, Image=newRecipe.Image });
-        newRecipe = new Recipe();
-    }
-
-    void EditRecipe(Recipe r){
+    void EditRecipe(recepie r){
         // future backend popup/edit page
     }
 
-    void DeleteRecipe(Recipe r){
-        uploaded.Remove(r);
-    }
-
-    class Recipe{
-        public string? Title { get; set; }
-        public string? Description { get; set; }
-        public string? Image { get; set; }
+    void DeleteRecipe(recepie r){
+        dbContext.recepies.Remove(r);
+        dbContext.SaveChangesAsync();
     }
 }
