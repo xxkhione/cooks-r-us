@@ -7,15 +7,11 @@
 
 
 <header>
-    <div>
-        <nav>
-            <h1>🔍 Look For Recipes Here!</h1>
-        </nav>
-    </div>
-    <div>
-        <input type="text" id="search-bar" class="search-input" @bind="SearchText" @bind:event="oninput"/>
-        <button class="search-button" id="search-btn" @onclick="SearchAsync">Search 😋</button>
-        <div style="border-top: 1px solid #6d3703 ; margin: 10px 0;"></div>
+   
+    <h1>🔍 Look For Recipes Here!</h1>        
+    <div class="search-wrapper">
+        <input type="text" id="search-bar" class="search-input" placeholder="Search for a recipe..." />
+        <button class="search-button" id="search-btn">Search 😋</button>
     </div>
 
 </header>
