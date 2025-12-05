@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Numerics;
+using System.Text.Json;
 using ThirdPartyIntegration.API.Models;
 
 namespace ThirdPartyIntegration.API.Services
@@ -7,7 +8,7 @@ namespace ThirdPartyIntegration.API.Services
     {
         private readonly HttpClient httpClient;
         private readonly string apiKey = "1"; //I refuse to pay for an upgrade of this simple API
-        private readonly string baseUrl = "www.themealdb.com/api/json/v1/";
+        private readonly string baseUrl = "https://www.themealdb.com/api/json/v1/";
 
         public RecipeApiService(HttpClient httpClient)
         {
@@ -36,7 +37,8 @@ namespace ThirdPartyIntegration.API.Services
                 List<Recipe> recipes = new List<Recipe>();
                 var tasks = meals.EnumerateArray().Select(async recipeElement =>
                 {
-                    int apiRecipeId = recipeElement.GetProperty("idMeal").GetInt32();
+                    string strApiRecipeId = recipeElement.GetProperty("idMeal").GetString();
+                    int apiRecipeId = int.Parse(strApiRecipeId);
                     return await GetMealAsync(apiRecipeId);
                 });
 
@@ -64,14 +66,16 @@ namespace ThirdPartyIntegration.API.Services
                 var recipeResponse = await response.Content.ReadAsStringAsync();
                 using JsonDocument json = JsonDocument.Parse(recipeResponse);
                 JsonElement root = json.RootElement;
+                JsonElement meals = root.GetProperty("meals")[0];
+                
 
                 return new Recipe
                 {
-                    ApiRecipeId = root.GetProperty("idMeal").GetInt32(),
-                    RecipeName = root.GetProperty("strMeal").GetString(),
-                    Image = root.GetProperty("strMealThumb").GetString(),
-                    Directions = root.GetProperty("strInstructions").GetString(),
-                    IngredientList = GetIngredientsAndMeasurements(root)
+                    ApiRecipeId = int.Parse(meals.GetProperty("idMeal").GetString()),
+                    RecipeName = meals.GetProperty("strMeal").GetString(),
+                    Image = meals.GetProperty("strMealThumb").GetString(),
+                    Directions = meals.GetProperty("strInstructions").GetString(),
+                    IngredientList = GetIngredientsAndMeasurements(meals)
                 };
             }
             return null;
@@ -82,7 +86,7 @@ namespace ThirdPartyIntegration.API.Services
             List<Ingredient> ingredients = new List<Ingredient>();
             for (int i = 1; i < 20; i++)
             {
-                if (!recipeElement.GetProperty($"strIngredient{i}").Equals("") || recipeElement.GetProperty($"strIngredient{i}").ToString() != null)
+                if (!string.IsNullOrWhiteSpace(recipeElement.GetProperty($"strIngredient{i}").ToString()))
                 {
                     string ingredientName = recipeElement.GetProperty($"strIngredient{i}").ToString();
                     string measurement = recipeElement.GetProperty($"strMeasure{i}").ToString();

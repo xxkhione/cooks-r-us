@@ -1,4 +1,6 @@
 using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
 using ThirdPartyIntegration.API.Services;
 
@@ -16,6 +18,15 @@ namespace ThirdPartyIntegration.API
             builder.Services.AddScoped<RecipeApiService>();
 
             builder.Services.AddControllers();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowBlazorClient", policy =>
+                {
+                    policy.WithOrigins("https://localhost:5108")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
@@ -25,13 +36,19 @@ namespace ThirdPartyIntegration.API
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
 
+            //app.UseHttpsRedirection();
+
+            app.UseCors("AllowBlazorClient");
+
             app.UseAuthorization();
+
+            app.MapControllers();
 
             app.Run();
         }
