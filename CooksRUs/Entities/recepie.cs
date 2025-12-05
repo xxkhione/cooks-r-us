@@ -9,6 +9,7 @@ namespace CooksRUs.Entities;
 public partial class recepie
 {
     [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int id { get; set; }
 
     public string recepie_name { get; set; } = null!;
@@ -21,6 +22,6 @@ public partial class recepie
     [ForeignKey("creatorid")]
     [InverseProperty("recepies")]
     public int creatorid { get; set; }
-    // false god - never returns anythign but null
+    // must be set in code, works fine after that
     public virtual user creator { get; set; } = null!;
 }

@@ -1,27 +1,36 @@
-﻿@page "/upload"
+﻿@using CooksRUs.Shared
+
+@page "/upload"
 
 <PageTitle>Upload</PageTitle>
-    <header>
-        <div>
-            <nav>
-                <h1>Share Your Recipes With The World! 🌎</h1>
-            </nav>
-            <p>
-               Fill out the details below, and submit your recipe for all to see!
-            </p>
-        </div>
-    </header>
 
-    <main class="container">
-        To-Do: Fill out main to display upload sheet
-    </main>
+<header>
+    <h1>Share Your Recipe! 🌎</h1>
+</header>
 
-    <div class="footer-flex">
-        <footer>
-            <p>&copy; 2025 Cooks R Us. All rights reserved.</p>
-        </footer>
-    </div>
+
+<h2>Your Uploaded Recipes 📤</h2>
+
+<div class="container">
+    @foreach(var r in uploaded)
+    {
+        <RecipeCard Title="@r.recepie_name" Description="@r.directions" ImageURL="@r.image"
+                    ShowEditControls="true"
+                    OnEdit="() => EditRecipe(r)"
+                    OnDelete="() => DeleteRecipe(r)" />
+    }
+</div>
 
 @code {
+    List<recepie> uploaded = new();
+    Recipe newRecipe = new();
 
+    void EditRecipe(recepie r){
+        // future backend popup/edit page
+    }
+
+    void DeleteRecipe(recepie r){
+        dbContext.recepies.Remove(r);
+        dbContext.SaveChangesAsync();
+    }
 }

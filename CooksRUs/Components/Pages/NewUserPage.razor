@@ -1,0 +1,48 @@
+﻿@page "/SignUp"
+@using Microsoft.EntityFrameworkCore
+@inject ILogger logger
+@rendermode InteractiveServer
+
+<h2>Create a New Account</h2>
+
+<EditForm method="post" Model="newUser" OnValidSubmit="CreateUser" FormName="NewUserForm" Enhance>
+
+    <ValidationSummary />
+
+    <label>username:</label>
+    <InputText placeholder="username" @bind-value="user_name" />
+    <br />
+    <label>password:</label>
+    <InputText placeholder="password" @bind-value="newUserPassword" />
+    <br />
+    <button type="submit">Submit</button>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    public string user_name { get; set; } = "";
+    [SupplyParameterFromForm]
+    public string newUserPassword { get; set; } = "";
+
+    [Inject]
+    public ILogger<NewUserPage> _logger { get; set; }
+
+    public user newUser { get; set; } = new user();
+
+
+    private async Task CreateUser()
+    {
+        try
+        {
+            newUser = new user { username = user_name, password = newUserPassword };
+            dbContext.users.Add(newUser);
+            await dbContext.SaveChangesAsync();
+            await cookie.SetValue(newUser.id);
+            navigation.NavigateTo("/", true);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "An error occurred somewhere");
+        }
+    }
+}

@@ -1,4 +1,5 @@
-﻿@page "/test"
+﻿@*DELETE ME AFTER TESTING!!*@
+@page "/test"
 @using Microsoft.EntityFrameworkCore
 @inject CooksRUsDbContext dbContext
 @rendermode InteractiveServer
@@ -40,14 +41,27 @@
         <p>name: @recepie.recepie_name</p>
         <p>directions: @recepie.directions</p>
         <p>creator: @recepie.creator.username</p>
-        @* @foreach(ingredient ing in ing_lst.ingredients.ToArray())
+        @foreach(ingredient ing in ing_lst.ingredients.ToArray())
         {
 
             <p>@ing.ingredient_name</p>
             <p>@ing.amount</p>
             
-        } *@
+        }
     }
+</div>
+
+<div class="CREATING-A-USER">
+
+    <label>username inpit</label>
+    <input type="text" placeholder="username" @bind-value="user_name"/>
+    <br />
+    <label>password input</label>
+    <input type="text" placeholder="password" @bind-value="newUserPassword"/>
+    <br />
+
+    <button @onclick="CreateUser">Submit</button>
+
 </div>
 
 @code {
@@ -55,6 +69,61 @@
 
     public recepie? recepie { get; set; }
     public ingredient_list? ing_lst { get; set; }
+
+    // trying to make thigns interactive
+
+    public string user_name { get; set; } = "";
+    public string newUserPassword { get; set; } = "";
+
+    // represents the ID of the current user, in this case, user #9
+    int userID = 9;
+
+
+    private async Task CreateUser()
+    {
+        if (!String.IsNullOrWhiteSpace(user_name) && !String.IsNullOrWhiteSpace(newUserPassword))
+        {
+            try
+            {
+                var newUser = new user
+                {
+                    username = user_name,
+                    // TODO: probbaly secure user passwords by hashing / encrypting them
+                    // however prioritize having a WORKING PRODUCT
+                    password = newUserPassword
+                };
+                dbContext.users.Add(newUser);
+                await dbContext.SaveChangesAsync();
+            }
+            catch
+            {
+                //ERROR HERE
+            }
+        }
+        else
+        {
+            //ERROR HERE
+            //SHOW "username and password is required"
+        }
+    }
+
+    private List<ingredient> ing_list = new List<ingredient>();
+    private recepie newRecepie;
+
+    protected override void OnInitialized()
+    {
+        AddIngredient();
+    }
+
+    private void AddIngredient()
+    {
+        ing_list.Add(new ingredient { list_id = 0, ingredient_name = "", amount = "" });
+    }
+
+    private void DeleteIngredient(ingredient ingre)
+    {
+        ing_list.Remove(ingre);
+    }
 
     //MANAGING USERS
     //Adding data
@@ -67,6 +136,7 @@
         await dbContext.SaveChangesAsync();
 
     }
+
     //fetching data
     private async Task FetchPerson()
     {
@@ -131,7 +201,7 @@
     private async Task MakeRecepie()
     {
         var userEntity = await dbContext.users
-            .FirstOrDefaultAsync(u => u.username == "MSL1002");
+            .FirstOrDefaultAsync(u => u.id == userID);
         if (userEntity == null) { return; }
 
         var newRecepie = new recepie {

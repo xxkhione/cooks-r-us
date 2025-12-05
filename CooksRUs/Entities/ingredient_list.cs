@@ -16,4 +16,6 @@ public partial class ingredient_list
 
     [InverseProperty("list")]
     public virtual ICollection<ingredient> ingredients { get; set; } = new List<ingredient>();
+    [ForeignKey("recepie_id")]
+    public virtual recepie? recepie { get; set; }
 }
