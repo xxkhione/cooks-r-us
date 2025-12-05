@@ -1,5 +1,8 @@
 ﻿@using CooksRUs.Shared
 @using CooksRUs.Entities
+@using Microsoft.EntityFrameworkCore
+@inject CooksRUs.Database.CooksRUsDbContext dbContext
+@inject CooksRUs.Components.Cookie.ICookie cookie
 
 @page "/search"
 
@@ -10,7 +13,7 @@
 </header>
 
 <input id="search-bar" class="search-input" @bind="query" placeholder="Search recipes..."/>
-<button id="search-btn" @onclick="SearchRecipes">Search 😋</button>
+<button type="button" id="search-btn" @onclick="SearchRecipes">Search 😋</button>
 
 @if(SearchResults.Count == 0)
 {
@@ -21,22 +24,27 @@ else
     <div class="container">
         @foreach(var r in SearchResults)
         {
-            <RecipeCard Title="@r.recepie_name" Description="@r.directions" Creator="@r.creator.username" ImageURL="@r.image"
-                        ShowSaveButton="true" OnSave="() => SaveRecipe(r)" />
+
+            <RecipeCard Title="@r.recepie_name" Description="@r.directions" Creator="@r.creator" ImageURL="@r.image"
+                        ShowSaveButton="userIsSignedIn" OnSave="@(async () => await SaveRecipe(r))" />
         }
     </div>
 }
 
 @code {
+
     string query = "";
     List<recepie> SearchResults = new();
+    bool userIsSignedIn;
 
-    void SearchRecipes() {
+    async Task SearchRecipes()
+    {
         try
         {
-            SearchResults = dbContext.recepies
-            .Where(r => r.recepie_name.Contains(query))
-            .ToList();
+            SearchResults = await dbContext.recepies
+                .Include(r => r.creator)          // ensure creator populated
+                .Where(r => r.recepie_name.Contains(query))
+                .ToListAsync();
         }
         catch
         {
@@ -45,9 +53,49 @@ else
 
     }
 
-    void SaveRecipe(recepie r){
-        int userID = cookie.GetValue().Result;
+    //Method not being called for some reason!!
 
-        dbContext.users.Where(u => u.id == userID).First().recepies.Add(r);
+    async Task SaveRecipe(recepie r)
+    {
+        Console.WriteLine("Save Ran");
+
+        try
+        {
+            var userID = await cookie.GetValue();
+
+            // avoid duplicate faves
+            var exists = await dbContext.faved_recepies
+                .AnyAsync(fr => fr.user_id == userID && fr.recepie_id == r.id);
+
+            if (exists)
+            {
+                return;
+            }
+
+            dbContext.faved_recepies.Add(new faved_recepie
+            {
+                user_id = userID,
+                recepie_id = r.id
+            });
+
+            await dbContext.SaveChangesAsync();
+        }
+        catch (Exception)
+        {
+            //an error happened
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        //only show the save button if the user is signed in
+        try
+        {
+            userIsSignedIn = cookie.GetValue().Result > 0;
+        }
+        catch
+        {
+            userIsSignedIn = false;
+        }
     }
 }

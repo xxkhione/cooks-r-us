@@ -1,27 +1,45 @@
-﻿@page "/NewRecepie"
+﻿@page "/upload"
 @using Microsoft.EntityFrameworkCore
 @rendermode InteractiveServer
-<h3>Create a new recepie</h3>
 
-<div class="CREATING-A-RECEPIE">
+<PageTitle>Upload</PageTitle>
 
-    <input type="text" @bind-value="newRecepie.recepie_name" placeholder="Recepie Name" />
-    <br />
+@if(userID == -1)
+{
+    <div class="PromptUserSignIn">
 
-    @foreach (ingredient i in ing_list)
-    {
-        <IngredientComponent ing="i"
-                             OnDelete="DeleteIngredient"
-                             currentRecepie="newRecepie"></IngredientComponent>
+        <p>It seems you are't signed in...</p>
+        <a href="/SignIn">Sign in or make an account here!</a>
+
+    </div>
+}
+else
+{
+    <header>
+        <h1>Share Your Recipe! 🌎</h1>
+    </header>
+
+    <div class="CREATING-A-RECEPIE">
+
+        <input type="text" @bind-value="newRecepie.recepie_name" placeholder="Recepie Name" />
         <br />
-    }
-    <br />
-    <button @onclick="AddIngredient">Add Ingredient</button>
-    <br />
-    <input type="text" @bind-value="newRecepie.directions" placeholder="Recepie Directions" />
-    <br />
-    <button @onclick="SubmitRecepie">Submit Recepie</button>
-</div>
+
+        @foreach (ingredient i in ing_list)
+        {
+            <IngredientComponent ing="i"
+                                 OnDelete="DeleteIngredient"
+                                 currentRecepie="newRecepie"></IngredientComponent>
+            <br />
+        }
+        <br />
+        <button @onclick="AddIngredient">Add Ingredient</button>
+        <br />
+        <input type="text" @bind-value="newRecepie.directions" placeholder="Recepie Directions" />
+        <br />
+        <button @onclick="SubmitRecepie">Submit Recepie</button>
+    </div>
+}
+
 
 @code {
     int userID;
@@ -66,9 +84,8 @@
         }
         catch
         {
-            //TODO:
             //User not signed in, show an error msg
-            return 0;
+            return -1;
         }
     }
 

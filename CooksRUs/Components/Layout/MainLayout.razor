@@ -43,6 +43,8 @@
 
     [Inject]
     private ILogger<MainLayout> logger { get; set; } = default!;
+    [Inject]
+    private NavigationManager Navigation { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -68,7 +70,7 @@
     {
         logger.LogDebug("Sign Out Method Ran");
         cookie.SetValue(-1);
-        StateHasChanged();
+        Navigation.NavigateTo(Navigation.Uri, true);
     }
 
 }

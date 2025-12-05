@@ -34,6 +34,9 @@ public partial class CooksRUsDbContext : DbContext
     {
         modelBuilder.Entity<faved_recepie>(entity =>
         {
+            // define composite primary key so EF can track/insert/delete
+            entity.HasKey(e => new { e.user_id, e.recepie_id });
+
             entity.HasOne(d => d.recepie).WithMany()
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_faved_recepies_recepies1");
