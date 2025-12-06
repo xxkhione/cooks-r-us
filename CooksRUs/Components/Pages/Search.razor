@@ -24,9 +24,10 @@ else
     <div class="container">
         @foreach(var r in SearchResults)
         {
+            var recep = r;
 
             <RecipeCard Title="@r.recepie_name" Description="@r.directions" Creator="@r.creator" ImageURL="@r.image"
-                        ShowSaveButton="userIsSignedIn" OnSave="@(async () => await SaveRecipe(r))" />
+                        ShowSaveButton="userIsSignedIn" rec="r" />
         }
     </div>
 }
@@ -51,39 +52,6 @@ else
             SearchResults = new();
         }
 
-    }
-
-    //Method not being called for some reason!!
-
-    async Task SaveRecipe(recepie r)
-    {
-        Console.WriteLine("Save Ran");
-
-        try
-        {
-            var userID = await cookie.GetValue();
-
-            // avoid duplicate faves
-            var exists = await dbContext.faved_recepies
-                .AnyAsync(fr => fr.user_id == userID && fr.recepie_id == r.id);
-
-            if (exists)
-            {
-                return;
-            }
-
-            dbContext.faved_recepies.Add(new faved_recepie
-            {
-                user_id = userID,
-                recepie_id = r.id
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
-        catch (Exception)
-        {
-            //an error happened
-        }
     }
 
     protected override void OnInitialized()

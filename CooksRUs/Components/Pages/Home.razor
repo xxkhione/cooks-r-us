@@ -34,10 +34,10 @@ else
 
     {
         <div class="container">
-            @foreach (var recipe in savedRecipes)
+            @foreach (var r in savedRecipes)
             {
-                <RecipeCard Title="@recipe.recepie_name" Description="@recipe.directions" Creator="@recipe.creator" ImageURL="@recipe.image"
-                ShowEditControls="false" ShowSaveButton="false" />
+                <RecipeCard Title="@r.recepie_name" Description="@r.directions" Creator="@r.creator" ImageURL="@r.image"
+                            ShowSaveButton="userIsSignedIn" rec="r" />
             }
         </div>
     }
@@ -45,16 +45,18 @@ else
 }
 @code {
     int userID;
-
-    List<recepie> savedRecipes = new();          // backend will fill these
-    List<recepie> featuredRecipes = new();       // showcase random recipes
+    bool userIsSignedIn;
+    List<recepie> savedRecipes = new();          
+    List<recepie> featuredRecipes = new();       
 
     protected override async Task OnInitializedAsync()
     {
         userID = await GetUserID();
-        if (userID != -1)
+        if (userID > 0)
         {
             await GetSavedRecepies();
+            userIsSignedIn = true;
+
         }
     }
 
@@ -67,8 +69,35 @@ else
             .ToListAsync();
     }
 
-    void SaveRecipe(recepie r){
-        savedRecipes.Add(r); // backend integration later
+    async Task SaveRecipe(recepie r)
+    {
+        Console.WriteLine("Save Ran");
+
+        try
+        {
+            var userID = await cookie.GetValue();
+
+            // avoid duplicate faves
+            var exists = await dbContext.faved_recepies
+                .AnyAsync(fr => fr.user_id == userID && fr.recepie_id == r.id);
+
+            if (exists)
+            {
+                return;
+            }
+
+            dbContext.faved_recepies.Add(new faved_recepie
+                {
+                    user_id = userID,
+                    recepie_id = r.id
+                });
+
+            await dbContext.SaveChangesAsync();
+        }
+        catch (Exception)
+        {
+            //an error happened
+        }
     }
 
     private async Task<int> GetUserID()

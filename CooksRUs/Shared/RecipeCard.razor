@@ -21,14 +21,14 @@
 
     @if (ShowSaveButton)
     {
-        <button type="button" class="card-btn save-btn" @onclick="await () => OnSave.InvokeAsync">Save</button>
+        <button type="button" class="card-btn save-btn" onclick="@SaveRecipe(rec)">Save ❤️</button>
     }
 
     @if (CheckCreator())
     {
         <div class="card-controls">
-            <button type="button" class="card-btn edit-btn" @onclick="OnEdit">Edit</button>
-            <button type="button" class="card-btn delete-btn" onclick="@OnDelete">Delete</button>
+            <button type="button" class="card-btn edit-btn" onclick="OnEdit">Edit ✏️</button>
+            <button type="button" class="card-btn delete-btn" onclick="@OnDelete">Delete 🗑️</button>
         </div>
     }
 </div>
@@ -38,6 +38,8 @@
     [Parameter] public string? Description { get; set; }
     [Parameter] public user? Creator { get; set; }
     [Parameter] public byte[]? ImageURL { get; set; }
+
+    [Parameter] public recepie? rec { get; set; }
 
     [Parameter] public bool ShowSaveButton { get; set; }
 
@@ -70,6 +72,42 @@
         {
             return false;
         }
+    }
+
+    async Task SaveRecipe(recepie r)
+    {
+        Console.WriteLine("Save Ran");
+
+        try
+        {
+            var userID = await cookie.GetValue();
+
+            // avoid duplicate faves
+            var exists = await dbContext.faved_recepies
+                .AnyAsync(fr => fr.user_id == userID && fr.recepie_id == r.id);
+
+            if (exists)
+            {
+                return;
+            }
+
+            dbContext.faved_recepies.Add(new faved_recepie
+            {
+                user_id = userID,
+                recepie_id = r.id
+            });
+
+            await dbContext.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Err in Save: {ex.Message}");
+        }
+    }
+
+    private async Task HandleSaveClick()
+    {
+        await OnSave.InvokeAsync();
     }
 
 
