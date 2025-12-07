@@ -1,16 +1,17 @@
 ﻿@page "/upload"
 @using Microsoft.EntityFrameworkCore
+@inject IDbContextFactory<CooksRUs.Database.CooksRUsDbContext> DbFactory
+@inject CooksRUs.Components.Cookie.ICookie cookie
+@inject NavigationManager navigation
 @rendermode InteractiveServer
 
 <PageTitle>Upload</PageTitle>
 
-@if(userID == -1)
+@if (userID == -1)
 {
     <div class="PromptUserSignIn">
-
-        <p>It seems you are't signed in...</p>
+        <p>It seems you aren't signed in...</p>
         <a href="/SignIn">Sign in or make an account here!</a>
-
     </div>
 }
 else
@@ -19,61 +20,83 @@ else
         <h1>Share Your Recipe! 🌎</h1>
     </header>
 
-    <div class="CREATING-A-RECEPIE">
+    @if (!string.IsNullOrEmpty(validationMessage))
+    {
+        <div class="validation-error">
+            <p>⚠️ @validationMessage</p>
+        </div>
+    }
 
-        <input type="text" @bind-value="newRecepie.recepie_name" placeholder="Recepie Name" />
-        <br />
-
-        @foreach (ingredient i in ing_list)
-        {
-            <IngredientComponent ing="i"
-                                 OnDelete="DeleteIngredient"
-                                 currentRecepie="newRecepie"></IngredientComponent>
+    <EditForm Model="newRecepie">
+        <div class="CREATING-A-RECEPIE">
+            <InputText type="text" @bind-value="newRecepie.recepie_name" placeholder="Recipe Name" />
             <br />
-        }
-        <br />
-        <button @onclick="AddIngredient">Add Ingredient</button>
-        <br />
-        <input type="text" @bind-value="newRecepie.directions" placeholder="Recepie Directions" />
-        <br />
-        <button @onclick="SubmitRecepie">Submit Recepie</button>
-    </div>
+            @foreach (ingredient i in ing_list)
+            {
+                <IngredientComponent ing="i"
+                                     OnDelete="DeleteIngredient"
+                                     currentRecepie="newRecepie"></IngredientComponent>
+                <br />
+            }
+            <br />
+            <button type="button" @onclick="AddIngredient">Add Ingredient</button>
+            <br />
+            <InputTextArea @bind-value="newRecepie.directions" placeholder="Recipe Directions" />
+            <br />
+            <button type="submit" @onclick="SubmitRecepie">Submit Recipe</button>
+        </div>
+    </EditForm>
 }
 
-
 @code {
-    int userID;
-
+    int userID = -1;
     private List<ingredient> ing_list = new List<ingredient>();
     private recepie newRecepie;
     private ingredient_list newIngLst;
+    private string validationMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
         userID = await GetUserID();
+
         newRecepie = new recepie
-            {
-                recepie_name = "",
-                directions = "",
-                image = null,
-                creatorid = userID
-            };
+        {
+            recepie_name = "",
+            directions = "",
+            image = null,
+            creatorid = userID
+        };
 
         newIngLst = new ingredient_list
         {
             recepie_id = newRecepie.id
         };
+
+        // Start with one ingredient
         AddIngredient();
     }
 
     private void AddIngredient()
     {
         ing_list.Add(new ingredient { list_id = newIngLst.id, ingredient_name = "", amount = "" });
+        Console.WriteLine($"Added ingredient. Total: {ing_list.Count}");
     }
 
     private void DeleteIngredient(ingredient ingre)
     {
-        ing_list.Remove(ingre);
+        // Only allow deletion if there's more than 1 ingredient
+        if (ing_list.Count > 1)
+        {
+            ing_list.Remove(ingre);
+            Console.WriteLine($"Deleted ingredient. Remaining: {ing_list.Count}");
+        }
+        else
+        {
+            validationMessage = "You must have at least one ingredient in your recipe.";
+            Console.WriteLine("Cannot delete the last ingredient");
+        }
+
+        StateHasChanged(); // Force UI update
     }
 
     private async Task<int> GetUserID()
@@ -84,37 +107,95 @@ else
         }
         catch
         {
-            //User not signed in, show an error msg
+            // User not signed in
             return -1;
         }
     }
 
     private async Task SubmitRecepie()
     {
+        // Clear previous validation message
+        validationMessage = "";
+
         try
         {
-            // Link entities via navigation properties so EF will set FKs on save
-            newIngLst.recepie = newRecepie;
-            newIngLst.ingredients = ing_list;
-
-            foreach (var ing in ing_list)
+            if (ValidateSubmission())
             {
-                ing.list = newIngLst;
+                await using var dbContext = await DbFactory.CreateDbContextAsync();
+
+                // Link entities via navigation properties so EF will set FKs on save
+                newIngLst.recepie = newRecepie;
+                newIngLst.ingredients = ing_list;
+
+                foreach (var ing in ing_list)
+                {
+                    ing.list = newIngLst;
+                }
+
+                // Add root/aggregate to the context — EF will insert related entities
+                dbContext.Add(newRecepie);
+                dbContext.Add(newIngLst);
+
+                await dbContext.SaveChangesAsync();
+                navigation.NavigateTo("/", true);
             }
-
-            // Add root/aggregate to the context — EF will insert related entities
-            dbContext.Add(newRecepie);
-            dbContext.Add(newIngLst);
-
-            await dbContext.SaveChangesAsync();
-            navigation.NavigateTo("/", true);
-
-            
         }
         catch (Exception e)
         {
             Console.WriteLine("ERROR:");
             Console.WriteLine(e);
+            validationMessage = "An error occurred while submitting your recipe. Please try again.";
         }
+    }
+
+    private bool ValidateSubmission()
+    {
+        // Validate recipe name
+        if (string.IsNullOrWhiteSpace(newRecepie.recepie_name))
+        {
+            validationMessage = "Please enter a recipe name.";
+            Console.WriteLine("Validation failed: No recipe name");
+            return false;
+        }
+
+        // Validate directions
+        if (string.IsNullOrWhiteSpace(newRecepie.directions))
+        {
+            validationMessage = "Please enter recipe directions.";
+            Console.WriteLine("Validation failed: No directions");
+            return false;
+        }
+
+        // Validate ingredient list exists
+        if (ing_list.Count == 0)
+        {
+            validationMessage = "Please add at least one ingredient.";
+            Console.WriteLine("Validation failed: No ingredients");
+            return false;
+        }
+
+        // Validate each ingredient has a name and amount
+        for (int i = 0; i < ing_list.Count; i++)
+        {
+            var ing = ing_list[i];
+
+            if (string.IsNullOrWhiteSpace(ing.ingredient_name))
+            {
+                validationMessage = $"Please enter a name for ingredient #{i + 1}.";
+                Console.WriteLine($"Validation failed: Ingredient {i + 1} has no name");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(ing.amount))
+            {
+                validationMessage = $"Please enter an amount for ingredient #{i + 1} ({ing.ingredient_name}).";
+                Console.WriteLine($"Validation failed: Ingredient {i + 1} has no amount");
+                return false;
+            }
+        }
+
+        // All validations passed
+        Console.WriteLine("Validation passed");
+        return true;
     }
 }

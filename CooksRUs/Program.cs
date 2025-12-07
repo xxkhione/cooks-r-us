@@ -15,11 +15,13 @@ namespace CooksRUs
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
 
-            builder.Services.AddDbContext<CooksRUsDbContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("CooksRUsContext")));
+            //builder.Services.AddDbContext<CooksRUsDbContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("CooksRUsContext")));
             builder.Services.AddScoped<ICookie, Cookie>();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddLogging();
-            
+
+            builder.Services.AddDbContextFactory<CooksRUsDbContext>(options =>
+                options.UseSqlServer(builder.Configuration.GetConnectionString("CooksRUsContext")));
 
             var app = builder.Build();
 

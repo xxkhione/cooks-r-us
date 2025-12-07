@@ -1,6 +1,6 @@
 ﻿@using CooksRUs.Entities
 @using Microsoft.EntityFrameworkCore
-@inject CooksRUs.Database.CooksRUsDbContext dbContext
+@inject IDbContextFactory<CooksRUs.Database.CooksRUsDbContext> DbFactory
 @inject CooksRUs.Components.Cookie.ICookie cookie
 
 <div class="recipe-card">
@@ -8,32 +8,38 @@
 
     <h2>@Title</h2>
     <p>@(Description?.Length > 120 ? Description.Substring(0, 120) + "..." : Description)</p>
-    @if(Creator != null)
+    @if (Creator != null)
     {
         <p><small>Creator: @Creator.username</small></p>
     }
     else
     {
-        // this should never happen
-        // but just incase it does
         <p><small>Creator: Unknown</small></p>
     }
 
-    @if (ShowSaveButton)
+    @if (ShowSaveButton || currentUserId > 0)
     {
-        <button type="button" class="card-btn save-btn" onclick="@SaveRecipe(rec)">Save ❤️</button>
+        @if (isRecipeSaved)
+        {
+            <button type="button" class="card-btn unsave-btn" onclick="@HandleUnsaveClick">Unsave 💔</button>
+        }
+        else
+        {
+            <button type="button" class="card-btn save-btn" onclick="@HandleSaveClick">Save ❤️</button>
+        }
     }
 
-    @if (CheckCreator())
+    @if (isUserCreator)
     {
         <div class="card-controls">
             <button type="button" class="card-btn edit-btn" onclick="OnEdit">Edit ✏️</button>
-            <button type="button" class="card-btn delete-btn" onclick="@OnDelete">Delete 🗑️</button>
+            <button type="button" class="card-btn delete-btn" onclick="@OnDeleteHandler">Delete 🗑️</button>
         </div>
     }
 </div>
 
 @code {
+
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Description { get; set; }
     [Parameter] public user? Creator { get; set; }
@@ -46,31 +52,56 @@
     [Parameter] public EventCallback OnSave { get; set; }
     [Parameter] public EventCallback OnEdit { get; set; }
 
-    public void OnDelete()
-    {
-        Console.WriteLine("On Delete clicked for this recepie: " + Title);
+    private bool isUserCreator = false;
+    private bool isRecipeSaved = false;
+    private int currentUserId = -1;
 
-    }
-
-    //Check to see if the user signed in is the creator
-    // for edit perms.
-    private bool CheckCreator()
+    protected override async Task OnInitializedAsync()
     {
         try
         {
-            if (Creator != null && Creator.id == cookie.GetValue().Result)
+            currentUserId = await cookie.GetValue();
+
+            // Check if user is the creator
+            if (Creator != null && Creator.id == currentUserId)
             {
-                return true;
-            }
-            else
-            {
-                return false;
+                isUserCreator = true;
             }
 
+            // Check if recipe is saved - use separate DbContext instance
+            if (rec != null)
+            {
+                await using var dbContext = await DbFactory.CreateDbContextAsync();
+                isRecipeSaved = await dbContext.faved_recepies
+                    .AnyAsync(fav => fav.user_id == currentUserId && fav.recepie_id == rec.id);
+            }
         }
-        catch
+        catch (Exception ex)
         {
-            return false;
+            Console.WriteLine($"Error in OnInitializedAsync: {ex.Message}");
+            currentUserId = -1;
+        }
+    }
+
+    private async Task OnDeleteHandler()
+    {
+        Console.WriteLine("On Delete clicked for this recipe: " + Title);
+        try
+        {
+            if (rec != null)
+            {
+                await using var dbContext = await DbFactory.CreateDbContextAsync();
+
+                // Attach the entity to this context
+                dbContext.recepies.Attach(rec);
+                dbContext.recepies.Remove(rec);
+                await dbContext.SaveChangesAsync();
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Couldn't remove recipe: {Title}. Error: {ex.Message}");
         }
     }
 
@@ -82,12 +113,15 @@
         {
             var userID = await cookie.GetValue();
 
+            await using var dbContext = await DbFactory.CreateDbContextAsync();
+
             // avoid duplicate faves
             var exists = await dbContext.faved_recepies
                 .AnyAsync(fr => fr.user_id == userID && fr.recepie_id == r.id);
 
             if (exists)
             {
+                Console.WriteLine("Recipe already saved");
                 return;
             }
 
@@ -98,17 +132,72 @@
             });
 
             await dbContext.SaveChangesAsync();
+            isRecipeSaved = true;
+            await OnSave.InvokeAsync();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Err in Save: {ex.Message}");
+            Console.WriteLine($"Error in Save: {ex.Message}");
+        }
+    }
+
+    async Task UnsaveRecipe(recepie r)
+    {
+        Console.WriteLine("Unsave Ran");
+
+        try
+        {
+            var userID = await cookie.GetValue();
+
+            await using var dbContext = await DbFactory.CreateDbContextAsync();
+
+            // Find the favorite record
+            var favorite = await dbContext.faved_recepies
+                .FirstOrDefaultAsync(fr => fr.user_id == userID && fr.recepie_id == r.id);
+
+            if (favorite == null)
+            {
+                Console.WriteLine("Recipe not in favorites");
+                return;
+            }
+
+            dbContext.faved_recepies.Remove(favorite);
+            await dbContext.SaveChangesAsync();
+            isRecipeSaved = false;
+            await OnSave.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in Unsave: {ex.Message}");
         }
     }
 
     private async Task HandleSaveClick()
     {
-        await OnSave.InvokeAsync();
+        if (rec != null)
+        {
+            await SaveRecipe(rec);
+            StateHasChanged(); // Force UI update
+        }
+        else
+        {
+            Console.WriteLine("rec is null, cannot save");
+        }
     }
 
+    private async Task HandleUnsaveClick()
+    {
+        Console.WriteLine("HandleUnsaveClick called");
+        Console.WriteLine($"rec is null: {rec == null}");
 
+        if (rec != null)
+        {
+            await UnsaveRecipe(rec);
+            StateHasChanged(); // Force UI update
+        }
+        else
+        {
+            Console.WriteLine("rec is null, cannot unsave");
+        }
+    }
 }

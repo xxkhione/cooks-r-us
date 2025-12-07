@@ -1,7 +1,7 @@
 ﻿@using CooksRUs.Shared
 @using CooksRUs.Entities
 @using Microsoft.EntityFrameworkCore
-@inject CooksRUs.Database.CooksRUsDbContext dbContext
+@inject IDbContextFactory<CooksRUs.Database.CooksRUsDbContext> DbFactory
 @inject CooksRUs.Components.Cookie.ICookie cookie
 
 @page "/search"
@@ -12,22 +12,24 @@
     <h1>🔍 Search Recipes</h1>
 </header>
 
-<input id="search-bar" class="search-input" @bind="query" placeholder="Search recipes..."/>
+<input id="search-bar" class="search-input" @bind="query" placeholder="Search recipes..." />
 <button type="button" id="search-btn" @onclick="SearchRecipes">Search 😋</button>
 
-@if(SearchResults.Count == 0)
+@if (SearchResults.Count == 0)
 {
     <p>No results yet — try searching something!</p>
 }
 else
 {
     <div class="container">
-        @foreach(var r in SearchResults)
+        @foreach (var r in SearchResults)
         {
-            var recep = r;
-
-            <RecipeCard Title="@r.recepie_name" Description="@r.directions" Creator="@r.creator" ImageURL="@r.image"
-                        ShowSaveButton="userIsSignedIn" rec="r" />
+            <RecipeCard Title="@r.recepie_name"
+                        Description="@r.directions"
+                        Creator="@r.creator"
+                        ImageURL="@r.image"
+                        ShowSaveButton="userIsSignedIn"
+                        rec="r" />
         }
     </div>
 }
@@ -36,34 +38,37 @@ else
 
     string query = "";
     List<recepie> SearchResults = new();
-    bool userIsSignedIn;
+    bool userIsSignedIn = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if user is signed in
+        try
+        {
+            var userId = await cookie.GetValue();
+            userIsSignedIn = userId > 0;
+        }
+        catch
+        {
+            userIsSignedIn = false;
+        }
+    }
 
     async Task SearchRecipes()
     {
         try
         {
+            await using var dbContext = await DbFactory.CreateDbContextAsync();
+
             SearchResults = await dbContext.recepies
                 .Include(r => r.creator)          // ensure creator populated
                 .Where(r => r.recepie_name.Contains(query))
                 .ToListAsync();
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error searching recipes: {ex.Message}");
             SearchResults = new();
-        }
-
-    }
-
-    protected override void OnInitialized()
-    {
-        //only show the save button if the user is signed in
-        try
-        {
-            userIsSignedIn = cookie.GetValue().Result > 0;
-        }
-        catch
-        {
-            userIsSignedIn = false;
         }
     }
 }

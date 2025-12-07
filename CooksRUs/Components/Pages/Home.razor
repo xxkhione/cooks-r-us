@@ -1,6 +1,7 @@
 ﻿@using CooksRUs.Shared
 @using Microsoft.EntityFrameworkCore
-@inject CooksRUs.Database.CooksRUsDbContext dbContext
+@inject IDbContextFactory<CooksRUs.Database.CooksRUsDbContext> DbFactory
+@inject CooksRUs.Components.Cookie.ICookie cookie
 
 @page "/"
 
@@ -16,38 +17,36 @@
 @if (userID == -1)
 {
     <div class="PromptUserSignIn">
-
-        <p>It seems you are't signed in...</p>
+        <p>It seems you aren't signed in...</p>
         <a href="/SignIn">Sign in or make an account here!</a>
-
     </div>
 }
 else
 {
-    
-
     @if (savedRecipes.Count == 0)
     {
         <p>You haven't saved anything yet — go explore!</p>
     }
     else
-
     {
         <div class="container">
             @foreach (var r in savedRecipes)
             {
-                <RecipeCard Title="@r.recepie_name" Description="@r.directions" Creator="@r.creator" ImageURL="@r.image"
-                            ShowSaveButton="userIsSignedIn" rec="r" />
+                <RecipeCard Title="@r.recepie_name"
+                            Description="@r.directions"
+                            Creator="@r.creator"
+                            ImageURL="@r.image"
+                            ShowSaveButton="userIsSignedIn"
+                            rec="r" />
             }
         </div>
     }
-
 }
+
 @code {
-    int userID;
-    bool userIsSignedIn;
-    List<recepie> savedRecipes = new();          
-    List<recepie> featuredRecipes = new();       
+    int userID = -1;
+    bool userIsSignedIn = false;
+    List<recepie> savedRecipes = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -56,17 +55,33 @@ else
         {
             await GetSavedRecepies();
             userIsSignedIn = true;
-
         }
     }
 
     private async Task GetSavedRecepies()
     {
-        // Query the faved_recepies table and select the related recepie entity.
+        await using var dbContext = await DbFactory.CreateDbContextAsync();
+
+        // Query the faved_recepies table and include the creator relationship
         savedRecipes = await dbContext.faved_recepies
             .Where(fr => fr.user_id == userID)
+            .Include(fr => fr.recepie)
+                .ThenInclude(r => r.creator)  // Explicitly include the creator
             .Select(fr => fr.recepie)
             .ToListAsync();
+    }
+
+    private async Task<int> GetUserID()
+    {
+        try
+        {
+            return await cookie.GetValue();
+        }
+        catch
+        {
+            // User not signed in
+            return -1;
+        }
     }
 
     async Task SaveRecipe(recepie r)
@@ -76,6 +91,8 @@ else
         try
         {
             var userID = await cookie.GetValue();
+
+            await using var dbContext = await DbFactory.CreateDbContextAsync();
 
             // avoid duplicate faves
             var exists = await dbContext.faved_recepies
@@ -87,29 +104,16 @@ else
             }
 
             dbContext.faved_recepies.Add(new faved_recepie
-                {
-                    user_id = userID,
-                    recepie_id = r.id
-                });
+            {
+                user_id = userID,
+                recepie_id = r.id
+            });
 
             await dbContext.SaveChangesAsync();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            //an error happened
-        }
-    }
-
-    private async Task<int> GetUserID()
-    {
-        try
-        {
-            return await cookie.GetValue();
-        }
-        catch
-        {
-            //User not signed in, show an error msg
-            return -1;
+            Console.WriteLine($"Error saving recipe: {ex.Message}");
         }
     }
 }
