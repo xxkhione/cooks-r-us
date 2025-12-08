@@ -1,5 +1,6 @@
 ﻿@using CooksRUs.Entities
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Logging
 @inject IDbContextFactory<CooksRUs.Database.CooksRUsDbContext> DbFactory
 @inject CooksRUs.Components.Cookie.ICookie cookie
 
@@ -39,6 +40,8 @@
 </div>
 
 @code {
+    [Inject]
+    Logger<ILogger> logger { get; set; } = default!;
 
     [Parameter] public string? Title { get; set; }
     [Parameter] public string? Description { get; set; }
@@ -52,7 +55,7 @@
     [Parameter] public EventCallback OnSave { get; set; }
     [Parameter] public EventCallback OnEdit { get; set; }
 
-    private bool isUserCreator = false;
+    [Parameter] public bool isUserCreator { get; set; }
     private bool isRecipeSaved = false;
     private int currentUserId = -1;
 
@@ -60,14 +63,6 @@
     {
         try
         {
-            currentUserId = await cookie.GetValue();
-
-            // Check if user is the creator
-            if (Creator != null && Creator.id == currentUserId)
-            {
-                isUserCreator = true;
-            }
-
             // Check if recipe is saved - use separate DbContext instance
             if (rec != null)
             {
@@ -78,14 +73,14 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in OnInitializedAsync: {ex.Message}");
+            logger.LogInformation($"Error in OnInitializedAsync: {ex.Message}");
             currentUserId = -1;
         }
     }
 
     private async Task OnDeleteHandler()
     {
-        Console.WriteLine("On Delete clicked for this recipe: " + Title);
+        logger.LogInformation("On Delete clicked for this recipe: " + Title);
         try
         {
             if (rec != null)
@@ -96,18 +91,20 @@
                 dbContext.recepies.Attach(rec);
                 dbContext.recepies.Remove(rec);
                 await dbContext.SaveChangesAsync();
-                StateHasChanged();
+                //page has to be reloaded before the recepie is actually removed from the screen
+                // thought internally the recepie is removed
+
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Couldn't remove recipe: {Title}. Error: {ex.Message}");
+            logger.LogInformation($"Couldn't remove recipe: {Title}. Error: {ex.Message}");
         }
     }
 
     async Task SaveRecipe(recepie r)
     {
-        Console.WriteLine("Save Ran");
+        logger.LogInformation("Save Ran");
 
         try
         {
@@ -121,7 +118,7 @@
 
             if (exists)
             {
-                Console.WriteLine("Recipe already saved");
+                logger.LogInformation("Recipe already saved");
                 return;
             }
 
@@ -137,13 +134,13 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in Save: {ex.Message}");
+            logger.LogInformation($"Error in Save: {ex.Message}");
         }
     }
 
     async Task UnsaveRecipe(recepie r)
     {
-        Console.WriteLine("Unsave Ran");
+        logger.LogInformation("Unsave Ran");
 
         try
         {
@@ -157,7 +154,7 @@
 
             if (favorite == null)
             {
-                Console.WriteLine("Recipe not in favorites");
+                logger.LogInformation("Recipe not in favorites");
                 return;
             }
 
@@ -168,7 +165,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in Unsave: {ex.Message}");
+            logger.LogInformation($"Error in Unsave: {ex.Message}");
         }
     }
 
@@ -181,14 +178,14 @@
         }
         else
         {
-            Console.WriteLine("rec is null, cannot save");
+            logger.LogInformation("rec is null, cannot save");
         }
     }
 
     private async Task HandleUnsaveClick()
     {
-        Console.WriteLine("HandleUnsaveClick called");
-        Console.WriteLine($"rec is null: {rec == null}");
+        logger.LogInformation("HandleUnsaveClick called");
+        logger.LogInformation($"rec is null: {rec == null}");
 
         if (rec != null)
         {
@@ -197,7 +194,15 @@
         }
         else
         {
-            Console.WriteLine("rec is null, cannot unsave");
+            logger.LogInformation("rec is null, cannot unsave");
         }
+    }
+
+    private async Task HandleEditclick(recepie r)
+    {
+        //Might have to forgo editing recepies
+        // not enough time + other systems need more dedication --Izzy
+
+        
     }
 }

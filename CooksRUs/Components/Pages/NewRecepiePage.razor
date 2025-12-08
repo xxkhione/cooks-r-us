@@ -1,5 +1,6 @@
 ﻿@page "/upload"
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.Extensions.Logging
 @inject IDbContextFactory<CooksRUs.Database.CooksRUsDbContext> DbFactory
 @inject CooksRUs.Components.Cookie.ICookie cookie
 @inject NavigationManager navigation
@@ -49,6 +50,9 @@ else
 }
 
 @code {
+    [Inject]
+    Logger<ILogger> logger { get; set; } = default!;
+
     int userID = -1;
     private List<ingredient> ing_list = new List<ingredient>();
     private recepie newRecepie;
@@ -79,7 +83,7 @@ else
     private void AddIngredient()
     {
         ing_list.Add(new ingredient { list_id = newIngLst.id, ingredient_name = "", amount = "" });
-        Console.WriteLine($"Added ingredient. Total: {ing_list.Count}");
+        logger.LogInformation($"Added ingredient. Total: {ing_list.Count}");
     }
 
     private void DeleteIngredient(ingredient ingre)
@@ -88,12 +92,12 @@ else
         if (ing_list.Count > 1)
         {
             ing_list.Remove(ingre);
-            Console.WriteLine($"Deleted ingredient. Remaining: {ing_list.Count}");
+            logger.LogInformation($"Deleted ingredient. Remaining: {ing_list.Count}");
         }
         else
         {
             validationMessage = "You must have at least one ingredient in your recipe.";
-            Console.WriteLine("Cannot delete the last ingredient");
+            logger.LogInformation("Cannot delete the last ingredient");
         }
 
         StateHasChanged(); // Force UI update
@@ -142,8 +146,8 @@ else
         }
         catch (Exception e)
         {
-            Console.WriteLine("ERROR:");
-            Console.WriteLine(e);
+            logger.LogInformation("ERROR:");
+            logger.LogInformation(e);
             validationMessage = "An error occurred while submitting your recipe. Please try again.";
         }
     }
@@ -154,7 +158,7 @@ else
         if (string.IsNullOrWhiteSpace(newRecepie.recepie_name))
         {
             validationMessage = "Please enter a recipe name.";
-            Console.WriteLine("Validation failed: No recipe name");
+            logger.LogInformation("Validation failed: No recipe name");
             return false;
         }
 
@@ -162,7 +166,7 @@ else
         if (string.IsNullOrWhiteSpace(newRecepie.directions))
         {
             validationMessage = "Please enter recipe directions.";
-            Console.WriteLine("Validation failed: No directions");
+            logger.LogInformation("Validation failed: No directions");
             return false;
         }
 
@@ -170,7 +174,7 @@ else
         if (ing_list.Count == 0)
         {
             validationMessage = "Please add at least one ingredient.";
-            Console.WriteLine("Validation failed: No ingredients");
+            logger.LogInformation("Validation failed: No ingredients");
             return false;
         }
 
@@ -182,20 +186,20 @@ else
             if (string.IsNullOrWhiteSpace(ing.ingredient_name))
             {
                 validationMessage = $"Please enter a name for ingredient #{i + 1}.";
-                Console.WriteLine($"Validation failed: Ingredient {i + 1} has no name");
+                logger.LogInformation($"Validation failed: Ingredient {i + 1} has no name");
                 return false;
             }
 
             if (string.IsNullOrWhiteSpace(ing.amount))
             {
                 validationMessage = $"Please enter an amount for ingredient #{i + 1} ({ing.ingredient_name}).";
-                Console.WriteLine($"Validation failed: Ingredient {i + 1} has no amount");
+                logger.LogInformation($"Validation failed: Ingredient {i + 1} has no amount");
                 return false;
             }
         }
 
         // All validations passed
-        Console.WriteLine("Validation passed");
+        logger.LogInformation("Validation passed");
         return true;
     }
 }

@@ -29,6 +29,7 @@ else
                         Creator="@r.creator"
                         ImageURL="@r.image"
                         ShowSaveButton="userIsSignedIn"
+                        isUserCreator="@CheckCreator(r)"
                         rec="r" />
         }
     </div>
@@ -64,11 +65,18 @@ else
                 .Include(r => r.creator)          // ensure creator populated
                 .Where(r => r.recepie_name.Contains(query))
                 .ToListAsync();
+
+
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error searching recipes: {ex.Message}");
             SearchResults = new();
         }
+    }
+    bool CheckCreator(recepie r)
+    {
+        // ensure the crator controls aren't carried over from previous search
+        return r.creatorid == cookie.GetValue().Result ? true : false; 
     }
 }
