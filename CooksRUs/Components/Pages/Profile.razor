@@ -1,0 +1,103 @@
+﻿@page "/profile"
+
+<PageTitle>Your Profile</PageTitle>
+
+<main class="profile-container">
+
+    <h1 class="profile-title">
+        Your Profile <span class="emoji">🧑‍🍳</span>
+    </h1>
+
+    <p class="profile-subtitle">
+        Manage your saved recipes, uploads, and account information.
+    </p>
+
+    <section class="profile-section">
+        <h2>User Information</h2>
+
+        <div class="profile-card">
+            <p><strong>Username:</strong> @Username</p>
+        </div>
+    </section>
+
+    <section class="profile-section">
+        <h2>Saved Recipes <span class="emoji">❤️</span></h2>
+
+        @if (SavedRecipes.Count == 0)
+        {
+            <p class="empty-text">You haven’t saved any recipes yet.</p>
+        }
+        else
+        {
+            <div class="recipe-list">
+                @foreach (var recipe in SavedRecipes)
+                {
+                    <div class="recipe-card">
+                        <img src="@recipe.ImageUrl" class="recipe-img" />
+
+                        <div class="recipe-info">
+                            <h3>@recipe.Title</h3>
+                            <p>@recipe.Description</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="profile-section">
+        <h2>Uploaded Recipes 🍽️ <span class="emoji"></span></h2>
+
+        @if (UploadedRecipes.Count == 0)
+        {
+            <p class="empty-text">They haven’t uploaded any recipes yet.</p>
+        }
+        else
+        {
+            <div class="recipe-list">
+                @foreach (var recipe in UploadedRecipes)
+                {
+                    <div class="recipe-card">
+                        <img src="@recipe.ImageUrl" class="recipe-img" />
+
+                        <div class="recipe-info">
+                            <h3>@recipe.Title</h3>
+                            <p>@recipe.Description</p>
+
+                            <div class="button-group">
+                                <button class="edit-btn">✏️ Edit</button>
+                                <button class="delete-btn">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+
+    <footer class="profile-footer">
+        © 2025 Cooks R Us. All rights reserved.
+    </footer>
+
+</main>
+
+@code {
+    // Demo user info — replace later
+    string Username = "DemoUser123";
+
+    // Fake test lists — connect to DB later
+    List<RecipeModel> SavedRecipes = new();
+    List<RecipeModel> UploadedRecipes = new();
+
+    protected override void OnInitialized()
+    {
+        
+    }
+
+    public class RecipeModel
+    {
+        public string Title { get; set; } = "";
+        public string Description { get; set; } = "";
+        public string ImageUrl { get; set; } = "";
+    }
+}

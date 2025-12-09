@@ -7,16 +7,34 @@
 
 
 @page "/search"
+@using CooksRUs.Models
+@inject IHttpClientFactory ClientFactory
 
 <PageTitle>Search</PageTitle>
 
+
+
 <header>
-    <h1>🔍 Search Recipes</h1>
+   
+    <h1>🔍 Look For Recipes Here!</h1>        
+    <div class="search-wrapper">
+        <input type="text" id="search-bar" class="search-input" placeholder="Search for a recipe..." />
+        <button class="search-button" id="search-btn">Search 😋</button>
+    </div>
+
 </header>
-
-<input id="search-bar" class="search-input" @bind="query" placeholder="Search recipes..." />
-<button type="button" id="search-btn" @onclick="SearchRecipes">Search 😋</button>
-
+<main class="container">
+    @if (Recipes is null)
+    {
+        <p>Type a keyword to search for recipes.</p>
+    }
+    else if (Recipes.Count == 0)
+    {
+        <p>No recipes found.</p>
+    }
+    else
+    {
+        @foreach (var recipe in Recipes)
 @if (SearchResults.Count == 0)
 {
     <p>No results yet — try searching something!</p>
@@ -42,6 +60,8 @@ else
     string query = "";
     List<recepie> SearchResults = new();
     bool userIsSignedIn = false;
+    private string SearchText { get; set; } = string.Empty;
+    private List<Recipe>? Recipes { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -55,7 +75,22 @@ else
         {
             userIsSignedIn = false;
         }
+
+    private async Task SearchAsync()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+                Recipes = new List<Recipe>();
+            return;
+        }
+
+        var client = ClientFactory.CreateClient("BackendApi");
+        Recipes = await client.GetFromJsonAsync<List<Recipe>>($"api/recipes?searchQuery={Uri.EscapeDataString(SearchText)}");
+
+
     }
+
+
 
     async Task SearchRecipes()
     {
@@ -68,7 +103,7 @@ else
                 .Where(r => r.recepie_name.Contains(query))
                 .ToListAsync();
 
-
+    void SaveRecipe(recepie r){
         }
         catch (Exception ex)
         {
@@ -80,5 +115,11 @@ else
     {
         // ensure the crator controls aren't carried over from previous search
         return r.creatorid == cookie.GetValue().Result ? true : false; 
+    {
+        // ensure the crator controls aren't carried over from previous search
+        return r.creatorid == cookie.GetValue().Result ? true : false; 
     }
+}
+
+    public class Recipe { public string? Title; public string? Description; public string? ImageUrl; }
 }
