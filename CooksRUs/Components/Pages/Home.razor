@@ -37,6 +37,7 @@ else
                             Creator="@r.creator"
                             ImageURL="@r.image"
                             ShowSaveButton="userIsSignedIn"
+                            isUserCreator="@CheckCreator(r)"
                             rec="r" />
             }
         </div>
@@ -83,37 +84,9 @@ else
             return -1;
         }
     }
-
-    async Task SaveRecipe(recepie r)
+    bool CheckCreator(recepie r)
     {
-        Console.WriteLine("Save Ran");
-
-        try
-        {
-            var userID = await cookie.GetValue();
-
-            await using var dbContext = await DbFactory.CreateDbContextAsync();
-
-            // avoid duplicate faves
-            var exists = await dbContext.faved_recepies
-                .AnyAsync(fr => fr.user_id == userID && fr.recepie_id == r.id);
-
-            if (exists)
-            {
-                return;
-            }
-
-            dbContext.faved_recepies.Add(new faved_recepie
-            {
-                user_id = userID,
-                recepie_id = r.id
-            });
-
-            await dbContext.SaveChangesAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error saving recipe: {ex.Message}");
-        }
+        // ensure the crator controls aren't carried over from previous search
+        return r.creatorid == cookie.GetValue().Result ? true : false;
     }
 }

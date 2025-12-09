@@ -18,6 +18,7 @@ namespace CooksRUs
             //builder.Services.AddDbContext<CooksRUsDbContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("CooksRUsContext")));
             builder.Services.AddScoped<ICookie, Cookie>();
             builder.Services.AddHttpContextAccessor();
+            builder.Services.AddHttpClient();
             builder.Services.AddLogging();
 
             builder.Services.AddDbContextFactory<CooksRUsDbContext>(options =>
@@ -32,6 +33,7 @@ namespace CooksRUs
             }
 
             app.UseAntiforgery();
+            app.UseHttpsRedirection();
 
             app.MapStaticAssets();
             app.MapRazorComponents<App>()

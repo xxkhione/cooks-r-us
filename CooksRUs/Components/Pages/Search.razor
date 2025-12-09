@@ -3,6 +3,8 @@
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<CooksRUs.Database.CooksRUsDbContext> DbFactory
 @inject CooksRUs.Components.Cookie.ICookie cookie
+@inject IHttpClientFactory ClientFactory
+
 
 @page "/search"
 
