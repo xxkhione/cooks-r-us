@@ -7,6 +7,11 @@
 
 <PageTitle>Upload</PageTitle>
 
+
+<header>
+    <h1>Share Your Recipe! 🌎</h1>
+</header>
+
 @if (userID == -1)
 {
     <div class="PromptUserSignIn">
@@ -16,9 +21,6 @@
 }
 else
 {
-    <header>
-        <h1>Share Your Recipe! 🌎</h1>
-    </header>
 
     @if (!string.IsNullOrEmpty(validationMessage))
     {
