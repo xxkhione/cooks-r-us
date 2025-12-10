@@ -20,7 +20,7 @@ else
     <div class="container">
         @foreach(var recipe in savedRecipes)
         {
-            <RecipeCard Title="@recipe.recepie_name" Description="@recipe.directions" ImageURL="@recipe.image" Creator="recepie.creator.username"
+            <RecipeCard Title="@recipe.recepie_name" Description="@recipe.directions" ImageURL="@recipe.image_url" Creator="@recipe.creator.username"
                         ShowEditControls="false" ShowSaveButton="false" />
         }
     </div>

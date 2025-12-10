@@ -18,6 +18,7 @@ public partial class recepie
 
     [Column(TypeName = "image")]
     public byte[]? image { get; set; }
+    public string? image_url { get; set; }
 
     [ForeignKey("creatorid")]
     [InverseProperty("recepies")]

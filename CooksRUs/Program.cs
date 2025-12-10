@@ -1,6 +1,7 @@
 using CooksRUs.Components;
 using CooksRUs.Components.Cookie;
 using CooksRUs.Database;
+using CooksRUs.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CooksRUs
@@ -20,6 +21,8 @@ namespace CooksRUs
                 .AddInteractiveServerComponents();
 
             builder.Services.AddDbContext<CooksRUsDbContext>(o => o.UseSqlServer(builder.Configuration.GetConnectionString("CooksRUsContext")));
+            builder.Services.AddScoped<LocalSaveService>();
+            builder.Services.AddScoped<UserRecipeService>();
             builder.Services.AddScoped<ICookie, Cookie>();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddLogging();

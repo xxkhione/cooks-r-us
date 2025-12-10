@@ -1,10 +1,14 @@
 ﻿@page "/search"
 @using CooksRUs.Models
+@using CooksRUs.Services
+@using CooksRUs.Shared
+@using CooksRUs.Entities
+@using System.Text
+
 @inject IHttpClientFactory ClientFactory
+@inject LocalSaveService SaveService
 
 <PageTitle>Search</PageTitle>
-
-
 
 <header>
     <div>
@@ -33,19 +37,8 @@
         @foreach (var recipe in Recipes)
         {
             <div class="item">
-                <div style="border-top: 1px solid #6d3703 ; margin: 10px 0;"></div>
-                <h2>@recipe.RecipeName</h2>
-                <div style="border-top: 1px solid #6d3703 ; margin: 10px 0;"></div>
-                <div class="recipe-main">
-                    <img class="recipe-image" src="@recipe.Image" alt="@recipe.RecipeName"/>
-                    <p class="recipe-directions">@recipe.Directions</p>
-                </div>
-                <ul class="recipe-ingredients">
-                    @foreach (var ingredient in recipe.IngredientList)
-                    {
-                        <li>@ingredient.Measurement @ingredient.IngredientName</li>
-                    }
-                </ul>
+                 <RecipeCard Title="@recipe.RecipeName" Description="@recipe.Directions" Creator="TheMealDB" ImageURL="@recipe.Image"
+                 ShowSaveButton="true" OnSave="() => SaveRecipeAsync(recipe)" />
             </div>
         }
     }
@@ -73,5 +66,11 @@
         var client = ClientFactory.CreateClient("BackendApi");
 
         Recipes = await client.GetFromJsonAsync<List<Recipe>>($"api/recipes?searchQuery={Uri.EscapeDataString(SearchText)}");
+    }
+
+
+    private async Task SaveRecipeAsync(Recipe recipe)
+    {
+        await SaveService.SaveRecipeAsync(recipe);
     }
 }
