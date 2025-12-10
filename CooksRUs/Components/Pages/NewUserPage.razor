@@ -1,9 +1,15 @@
 ﻿@page "/SignUp"
 @using Microsoft.EntityFrameworkCore
-@inject ILogger logger
 @rendermode InteractiveServer
 
 <h2>Create a New Account</h2>
+
+@if (!string.IsNullOrEmpty(validationMessage))
+{
+    <div class="validation-error">
+        <p>⚠️ @validationMessage</p>
+    </div>
+}
 
 <EditForm method="post" Model="newUser" OnValidSubmit="CreateUser" FormName="NewUserForm" Enhance>
 
@@ -24,9 +30,7 @@
     [SupplyParameterFromForm]
     public string newUserPassword { get; set; } = "";
 
-    [Inject]
-    public ILogger<NewUserPage> _logger { get; set; }
-
+    string validationMessage;
     public user newUser { get; set; } = new user();
 
 
@@ -34,15 +38,23 @@
     {
         try
         {
-            newUser = new user { username = user_name, password = newUserPassword };
-            dbContext.users.Add(newUser);
-            await dbContext.SaveChangesAsync();
-            await cookie.SetValue(newUser.id);
-            navigation.NavigateTo("/", true);
+            if(!string.IsNullOrWhiteSpace(user_name) && !string.IsNullOrWhiteSpace(newUserPassword))
+            {
+                newUser = new user { username = user_name, password = newUserPassword };
+
+                dbContext.users.Add(newUser);
+                await dbContext.SaveChangesAsync();
+                await cookie.SetValue(newUser.id);
+                navigation.NavigateTo("/", true);
+            }
+            else
+            {
+                validationMessage = "Username or password cannot be null or only whitespace.";
+            }
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "An error occurred somewhere");
+            Console.WriteLine(e);
         }
     }
 }
