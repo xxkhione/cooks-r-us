@@ -1,4 +1,5 @@
 ﻿@page "/upload"
+@using CooksRUs.Shared
 @using Microsoft.EntityFrameworkCore
 @inject IDbContextFactory<CooksRUs.Database.CooksRUsDbContext> DbFactory
 @inject CooksRUs.Components.Cookie.ICookie cookie
@@ -48,9 +49,22 @@ else
             <button type="submit" @onclick="SubmitRecepie">Submit Recipe</button>
         </div>
     </EditForm>
+    <br />
+    @if (uploaded != null && uploaded.Count > 0)
+    {
+        <h2>Your uploaded recepies</h2>
+        <div class="container">
+            @foreach (var r in uploaded)
+            {
+                <RecipeCard Title="@r.recepie_name" Description="@r.directions" ImageURL="@r.image" />
+            }
+        </div>
+    }
+
 }
 
 @code {
+    List<recepie>? uploaded;
 
     int userID = -1;
     private List<ingredient> ing_list = new List<ingredient>();
@@ -74,6 +88,12 @@ else
         {
             recepie_id = newRecepie.id
         };
+
+        await using var dbContext = await DbFactory.CreateDbContextAsync();
+
+        uploaded = dbContext.recepies.Where(r => r.creatorid == userID).ToList();
+
+        dbContext.Dispose();
 
         // Start with one ingredient
         AddIngredient();
